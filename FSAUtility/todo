@@ -2,8 +2,4 @@ To add triggers:
 	Manually using right-click from one node and left-click on another
 	
 TODO
-2.Add self-looping for node triggers
-3.Change appearance of node depending on its type
 6.Add ability to test inputs
-7.Ability to rename nodes
-8.Check for duplicate node names

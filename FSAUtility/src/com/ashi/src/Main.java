@@ -168,9 +168,81 @@ public class Main {
 		JMenuItem editNode = new JMenuItem("Edit node");
 		editNode.addActionListener(e -> {
 			if (gui.getSelectedNode() != null) {
-				JFrame frame = new JFrame("Edit Node");
+				String newName;
+
+				if ((newName = JOptionPane.showInputDialog(null, "Enter new node name")) != null) {
+					boolean nameTaken = false;
+
+					for (Node node : gui.getNodes()) {
+						if (node.getName().equals(newName)) {
+							nameTaken = true;
+							break;
+						}
+					}
+
+					if (!nameTaken) {
+						gui.getSelectedNode().setName(newName);
+
+						gui.repaint();
+					} else {
+						JOptionPane.showMessageDialog(null, "ERROR: Name already taken");
+					}
+				}
 			}
 		});
+
+		editMenu.add(editNode);
+
+		JMenu stateMenu = new JMenu("Change State");
+
+		JMenuItem beginningNode = new JMenuItem("Beginning Node");
+		beginningNode.addActionListener(e -> {
+			if (gui.getSelectedNode() != null) {
+				boolean alreadyHasBeginningNode = false;
+
+				for (Node currNode : gui.getNodes()) {
+					if (currNode.getNodeState().equals(NodeState.BEGINNING)) {
+						alreadyHasBeginningNode = true;
+						break;
+					}
+				}
+
+				if (!alreadyHasBeginningNode) {
+					gui.getSelectedNode().setNodeState(NodeState.BEGINNING);
+				} else {
+					JOptionPane.showMessageDialog(null, "ERROR: Beginning node already exists");
+				}
+			} else {
+				JOptionPane.showMessageDialog(null, "ERROR: No node selected");
+			}
+		});
+
+		JMenuItem terminalNode = new JMenuItem("Terminal Node");
+		terminalNode.addActionListener(e -> {
+			if (gui.getSelectedNode() != null) {
+				gui.getSelectedNode().setNodeState(NodeState.TERMINAL);
+
+				
+			} else {
+				JOptionPane.showMessageDialog(null, "ERROR: No node selected");
+			}
+
+		});
+
+		JMenuItem regularNode = new JMenuItem("Regular Node");
+		regularNode.addActionListener(e -> {
+			if (gui.getSelectedNode() != null) {
+				gui.getSelectedNode().setNodeState(NodeState.REGULAR);
+			} else {
+				JOptionPane.showMessageDialog(null, "ERROR: No node selected");
+			}
+		});
+
+		stateMenu.add(beginningNode);
+		stateMenu.add(terminalNode);
+		stateMenu.add(regularNode);
+
+		editMenu.add(stateMenu);
 
 		menuBar.add(editMenu);
 

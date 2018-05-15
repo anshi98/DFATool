@@ -6,12 +6,15 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Arc2D;
+import java.awt.geom.Arc2D.Double;
 import java.awt.geom.Line2D;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -28,11 +31,14 @@ import javax.swing.JPanel;
 public class GUI extends JPanel implements Serializable {
 
 	private static final int CLICKBOX = 4;
+	private static final int ARC_HEIGHT = 60;
 
 	private List<Node> nodes;
 	private Node selectedNode;
 	private Node beginningNode;
 	private Connection selectedConnection;
+	private int nodeIndex = 0;
+	private Shape arc = null;
 
 	private int screenX, screenY, panelX, panelY;
 
@@ -117,9 +123,8 @@ public class GUI extends JPanel implements Serializable {
 
 		@Override
 		public void keyPressed(KeyEvent arg0) {
-			System.out.println("HELLO");
+
 			if (arg0.getKeyCode() == KeyEvent.VK_DELETE) {
-				System.out.println("HELLO");
 
 				if (selectedNode != null) {
 					Iterator<Node> iter = nodes.iterator();
@@ -199,19 +204,56 @@ public class GUI extends JPanel implements Serializable {
 					}
 
 					for (Node adj : node.getConnections().keySet()) {
-						Line2D.Double currConnection = new Line2D.Double(node.getxPos(), node.getyPos(), adj.getxPos(),
-								adj.getyPos());
+						System.out.println("E");
+						Line2D.Double currConnection = null;
+						arc = null;
+						if (node.equals(adj)) {
+							currConnection = new Line2D.Double(node.getxPos(), node.getyPos(), adj.getxPos(),
+									adj.getyPos());
+						} else {
+							System.out.println("ELSE");
+							if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
+
+								double dx = adj.getxPos() - node.getxPos(), dy = adj.getyPos() - node.getyPos();
+								double angle = Math.atan2(dy, dx);
+								int len = (int) Math.sqrt(dx * dx + dy * dy);
+								AffineTransform at = AffineTransform.getTranslateInstance(node.getxPos(),
+										node.getyPos());
+								at.concatenate(AffineTransform.getRotateInstance(angle));
+
+								arc = new Arc2D.Double(0, 0 - ARC_HEIGHT / 2, len, ARC_HEIGHT, 0, 180, Arc2D.CHORD);
+
+								arc = at.createTransformedShape(arc);
+							} else {
+								currConnection = new Line2D.Double(node.getxPos(),
+										node.getyPos() + Node.LOOP_ARROW_OFFSET, node.getxPos(), node.getyPos());
+							}
+
+						}
 
 						Rectangle clickbox = new Rectangle(me.getX() - CLICKBOX, me.getY() - CLICKBOX, CLICKBOX * 2,
 								CLICKBOX * 2);
 
-						if (currConnection.intersects(clickbox)) {
-							System.out.println(node + " " + adj);
-							selectedNode = null;
-							beginningNode = null;
-							selectedConnection = new Connection(node, adj);
-							repaint();
-							return;
+						if (arc != null) {
+							System.out.println(arc.intersects(clickbox));
+
+							if (arc.intersects(clickbox)) {
+
+								selectedNode = null;
+								beginningNode = null;
+								selectedConnection = new Connection(node, adj);
+								repaint();
+								return;
+							}
+						} else {
+							if (currConnection.intersects(clickbox)) {
+
+								selectedNode = null;
+								beginningNode = null;
+								selectedConnection = new Connection(node, adj);
+								repaint();
+								return;
+							}
 						}
 					}
 				}
@@ -243,7 +285,8 @@ public class GUI extends JPanel implements Serializable {
 			}
 
 			if (me.getButton() == MouseEvent.BUTTON3) {
-				nodes.add(new Node(me.getX(), me.getY(), Integer.toString(nodes.size()), NodeState.REGULAR));
+
+				nodes.add(new Node(me.getX(), me.getY(), Integer.toString(nodeIndex++), NodeState.REGULAR));
 
 				selectedNode = null;
 				beginningNode = null;
@@ -279,8 +322,22 @@ public class GUI extends JPanel implements Serializable {
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+		if (arc != null) {
+			g2d.draw(arc);
+		}
+
 		for (Node node : nodes) {
 			g2d.drawOval(node.getxPos() - Node.RADIUS, node.getyPos() - Node.RADIUS, Node.RADIUS * 2, Node.RADIUS * 2);
+
+			if (node.getNodeState() == NodeState.TERMINAL) {
+				g2d.drawOval(node.getxPos() - Node.INNER_RADIUS_TERMINAL, node.getyPos() - Node.INNER_RADIUS_TERMINAL,
+						Node.INNER_RADIUS_TERMINAL * 2, Node.INNER_RADIUS_TERMINAL * 2);
+			}
+
+			if (node.getNodeState() == NodeState.BEGINNING) {
+				drawArrow(g2d, node.getxPos() - Node.BEGINNING_ARROW_OFFSET, node.getyPos(), node.getxPos(),
+						node.getyPos());
+			}
 
 			drawCenteredString(g, node.getName(), new Rectangle(node.getxPos() - Node.RADIUS,
 					(int) (node.getyPos() - (Node.RADIUS * 2.25f)), Node.RADIUS * 2, Node.RADIUS * 2));
@@ -292,13 +349,31 @@ public class GUI extends JPanel implements Serializable {
 				if (selectedConnection != null && selectedConnection.getStartNode().equals(node)
 						&& selectedConnection.getEndNode().equals(adj)) {
 					g2d.setColor(Color.BLUE);
-					drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+					if (selectedConnection.getStartNode().equals(selectedConnection.getEndNode())) {
+						drawLoopArrow(triggers, g2d, node);
+					} else {
+
+						if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
+							drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(),
+									adj.getyPos());
+						} else {
+							drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+						}
+					}
 					g2d.setColor(Color.BLACK);
 				} else {
-					drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+					if (entry.getKey().equals(node)) {
+						drawLoopArrow(triggers, g2d, node);
+					} else {
+						if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
+							drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(),
+									adj.getyPos());
+						} else {
+							drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+						}
+					}
 				}
 
-				System.out.println(node.getConnections());
 			}
 		}
 
@@ -320,6 +395,8 @@ public class GUI extends JPanel implements Serializable {
 					(int) (beginningNode.getyPos() - (Node.RADIUS * 2.25f)), Node.RADIUS * 2, Node.RADIUS * 2));
 		}
 
+		repaint();
+
 	}
 
 	public void drawCenteredString(Graphics g, String text, Rectangle rect) {
@@ -336,7 +413,7 @@ public class GUI extends JPanel implements Serializable {
 
 	public void drawConnection(Set<String> triggers, Graphics g2d, int x1, int y1, int x2, int y2) {
 
-		final int ARR_SIZE = 9;
+		final int ARR_SIZE = 10;
 
 		Graphics2D g = (Graphics2D) g2d.create();
 
@@ -353,7 +430,7 @@ public class GUI extends JPanel implements Serializable {
 				4);
 
 		if (dx < 0) {
-			System.out.println(dx);
+
 			AffineTransform text = AffineTransform.getTranslateInstance(x2, y2);
 			text.concatenate(AffineTransform.getRotateInstance(angle + Math.PI));
 			g.setTransform(text);
@@ -366,8 +443,57 @@ public class GUI extends JPanel implements Serializable {
 			display.append(trigger + " ");
 		}
 
-		System.out.println(triggers);
-
 		g.drawString(display.toString(), len / 2, 0);
+	}
+
+	public void drawArcConnection(Set<String> triggers, Graphics g2d, int x1, int y1, int x2, int y2) {
+
+		final int ARR_SIZE = 10;
+
+		Graphics2D g = (Graphics2D) g2d.create();
+
+		double dx = x2 - x1, dy = y2 - y1;
+		double angle = Math.atan2(dy, dx);
+		int len = (int) Math.sqrt(dx * dx + dy * dy);
+		AffineTransform at = AffineTransform.getTranslateInstance(x1, y1);
+		at.concatenate(AffineTransform.getRotateInstance(angle));
+		g.transform(at);
+
+		g.drawArc(0, 0 - ARC_HEIGHT / 2, len, ARC_HEIGHT, 0, 180);
+
+		g.fillPolygon(new int[] { len, len - ARR_SIZE, len - ARR_SIZE, len }, new int[] { 0, -ARR_SIZE, ARR_SIZE, 0 },
+				4);
+
+		StringBuilder display = new StringBuilder();
+
+		for (String trigger : triggers) {
+			display.append(trigger + " ");
+		}
+
+		g.drawString(display.toString(), len / 2, -ARC_HEIGHT);
+	}
+
+	public void drawArrow(Graphics g2d, int x1, int y1, int x2, int y2) {
+		final int ARR_SIZE = 9;
+
+		Graphics2D g = (Graphics2D) g2d.create();
+
+		double dx = x2 - x1, dy = y2 - y1;
+		double angle = Math.atan2(dy, dx);
+		int len = (int) Math.sqrt(dx * dx + dy * dy);
+		AffineTransform at = AffineTransform.getTranslateInstance(x1, y1);
+		at.concatenate(AffineTransform.getRotateInstance(angle));
+		g.transform(at);
+
+		g.drawLine(0, 0, len, 0);
+
+		g.fillPolygon(new int[] { len, len - ARR_SIZE, len - ARR_SIZE, len }, new int[] { 0, -ARR_SIZE, ARR_SIZE, 0 },
+				4);
+	}
+
+	public void drawLoopArrow(Set<String> triggers, Graphics g2d, Node node) {
+		drawConnection(triggers, g2d, node.getxPos(), node.getyPos() + Node.LOOP_ARROW_OFFSET, node.getxPos(),
+				node.getyPos());
+
 	}
 }

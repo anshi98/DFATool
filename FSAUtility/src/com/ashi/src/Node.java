@@ -11,6 +11,9 @@ import javax.swing.JComponent;
 @SuppressWarnings("serial")
 public class Node extends JComponent implements Serializable {
 	public static final int RADIUS = 50;
+	public static final int INNER_RADIUS_TERMINAL = (int) (RADIUS * 0.80);
+	public static final int BEGINNING_ARROW_OFFSET = 100;
+	public static final int LOOP_ARROW_OFFSET = 150;
 
 	private int xPos;
 	private int yPos;
