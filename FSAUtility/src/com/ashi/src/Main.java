@@ -8,6 +8,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -57,16 +60,40 @@ public class Main {
 		JButton testInput = new JButton("Test");
 		testInput.addActionListener(e -> {
 			if (!inputsBox.getText().equals("")) {
-				// TODO
 
-				System.out.println(inputsBox.getText());
-				System.out.println("CREASH");
+				for (Node node : gui.getNodes()) {
+					if (node.getNodeState() == NodeState.BEGINNING) {
+						List<String> tokens = new ArrayList<>(Arrays.asList(inputsBox.getText().split(" ")));
+
+						JFrame testFrame = new JFrame("Test input");
+						testFrame.setSize(TestInputView.WIDTH, TestInputView.HEIGHT);
+
+						testFrame.add(new TestInputView(tokens, node));
+						testFrame.setVisible(true);
+
+						testFrame.addWindowListener(new WindowAdapter() {
+							@Override
+							public void windowClosing(WindowEvent e) {
+								f.setEnabled(true);
+								gui.setTestNode(null);
+							}
+
+						});
+
+						f.setEnabled(false);
+
+						return;
+					}
+				}
+
+				JOptionPane.showMessageDialog(null, "ERROR: No beginning node");
 			}
 		});
 
 		interfacePanel.add(inputsBox, BorderLayout.WEST);
 		interfacePanel.add(testInput, BorderLayout.CENTER);
 
+		f.add(interfacePanel, BorderLayout.NORTH);
 	}
 
 	private static void initMenus(JFrame f) {
@@ -209,6 +236,7 @@ public class Main {
 
 				if (!alreadyHasBeginningNode) {
 					gui.getSelectedNode().setNodeState(NodeState.BEGINNING);
+					gui.repaint();
 				} else {
 					JOptionPane.showMessageDialog(null, "ERROR: Beginning node already exists");
 				}
@@ -221,8 +249,7 @@ public class Main {
 		terminalNode.addActionListener(e -> {
 			if (gui.getSelectedNode() != null) {
 				gui.getSelectedNode().setNodeState(NodeState.TERMINAL);
-
-				
+				gui.repaint();
 			} else {
 				JOptionPane.showMessageDialog(null, "ERROR: No node selected");
 			}
@@ -233,6 +260,7 @@ public class Main {
 		regularNode.addActionListener(e -> {
 			if (gui.getSelectedNode() != null) {
 				gui.getSelectedNode().setNodeState(NodeState.REGULAR);
+				gui.repaint();
 			} else {
 				JOptionPane.showMessageDialog(null, "ERROR: No node selected");
 			}

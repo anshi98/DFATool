@@ -14,7 +14,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
-import java.awt.geom.Arc2D.Double;
 import java.awt.geom.Line2D;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -39,6 +38,7 @@ public class GUI extends JPanel implements Serializable {
 	private Connection selectedConnection;
 	private int nodeIndex = 0;
 	private Shape arc = null;
+	private Node testNode = null;
 
 	private int screenX, screenY, panelX, panelY;
 
@@ -104,6 +104,14 @@ public class GUI extends JPanel implements Serializable {
 
 	public void setSelectedConnection(Connection selectedConnection) {
 		this.selectedConnection = selectedConnection;
+	}
+
+	public Node getTestNode() {
+		return testNode;
+	}
+
+	public void setTestNode(Node testNode) {
+		this.testNode = testNode;
 	}
 
 	public GUI() {
@@ -395,8 +403,12 @@ public class GUI extends JPanel implements Serializable {
 					(int) (beginningNode.getyPos() - (Node.RADIUS * 2.25f)), Node.RADIUS * 2, Node.RADIUS * 2));
 		}
 
-		repaint();
+		if (testNode != null) {
+			g2d.setColor(Color.RED);
 
+			g2d.drawOval(testNode.getxPos() - Node.RADIUS, testNode.getyPos() - Node.RADIUS, Node.RADIUS * 2,
+					Node.RADIUS * 2);
+		}
 	}
 
 	public void drawCenteredString(Graphics g, String text, Rectangle rect) {
