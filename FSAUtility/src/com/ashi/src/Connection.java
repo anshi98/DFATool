@@ -12,7 +12,7 @@ public class Connection {
 	}
 
 	/**
-	 * 
+	 * Returns the set of words that are accepted between the start and end node
 	 * @return
 	 */
 	public Set<String> getTriggers() {

@@ -1,6 +1,7 @@
 package com.ashi.src;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.FileInputStream;
@@ -28,6 +29,7 @@ public class Main {
 	public static final int HEIGHT = 1000;
 	public static final int WIDTH = 1000;
 	public static GUI gui = new GUI();
+	public static JFrame f = new JFrame("Automata Simulator");
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(new Runnable() {
@@ -38,27 +40,40 @@ public class Main {
 		});
 	}
 
+	/**
+	 * Initializes all GUI elements of the application (Menu bar and main
+	 * interactive interface (Testing interface and node interface))
+	 */
 	public static void initUI() {
 
-		JFrame f = new JFrame("Swing Hello World");
 		f.setSize(WIDTH, HEIGHT);
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		f.setVisible(true);
 		f.setLayout(new BorderLayout());
 		f.add(gui, BorderLayout.CENTER);
 
-		initMenus(f);
-		initInputInterface(f);
+		initMenus();
+		initInputInterface();
 	}
 
-	private static void initInputInterface(JFrame f) {
+	/**
+	 * Initializes the input options interface for testing the automata
+	 */
+	private static void initInputInterface() {
 		JPanel interfacePanel = new JPanel();
 		interfacePanel.setLayout(new BorderLayout());
 
 		JTextField inputsBox = new JTextField(80);
 
-		JButton testInput = new JButton("Test");
-		testInput.addActionListener(e -> {
+		interfacePanel.add(inputsBox, BorderLayout.WEST);
+		interfacePanel.add(createTestInputButton(inputsBox), BorderLayout.CENTER);
+
+		f.add(interfacePanel, BorderLayout.NORTH);
+	}
+
+	private static Component createTestInputButton(JTextField inputsBox) {
+		JButton toReturn = new JButton("Test");
+		toReturn.addActionListener(e -> {
 			if (!inputsBox.getText().equals("")) {
 
 				for (Node node : gui.getNodes()) {
@@ -89,111 +104,97 @@ public class Main {
 				JOptionPane.showMessageDialog(null, "ERROR: No beginning node");
 			}
 		});
-
-		interfacePanel.add(inputsBox, BorderLayout.WEST);
-		interfacePanel.add(testInput, BorderLayout.CENTER);
-
-		f.add(interfacePanel, BorderLayout.NORTH);
+		return toReturn;
 	}
 
-	private static void initMenus(JFrame f) {
+	private static void initMenus() {
 		JMenuBar menuBar = new JMenuBar();
 
-		JMenu fileMenu = new JMenu("File");
+		menuBar.add(createFileMenu());
 
-		JMenuItem writeOutState = new JMenuItem("Write out state");
-		writeOutState.addActionListener(e -> {
-			try {
-				String serialName = JOptionPane.showInputDialog(null, "Enter name of file");
-
-				if (serialName != null) {
-					FileOutputStream fileOut = new FileOutputStream("./serials/" + serialName + ".ser");
-					ObjectOutputStream out = new ObjectOutputStream(fileOut);
-					out.writeObject(gui);
-					out.close();
-					fileOut.close();
-					System.out.printf("Serialized data is saved in ./serials/" + serialName + ".ser");
-				}
-			} catch (IOException i) {
-				i.printStackTrace();
-			}
-		});
-
-		fileMenu.add(writeOutState);
-
-		JMenuItem readInState = new JMenuItem("Read in state");
-		readInState.addActionListener(e -> {
-			JFileChooser chooser = new JFileChooser("Select State File");
-			FileNameExtensionFilter filter = new FileNameExtensionFilter("SER Files", "ser");
-			chooser.setFileFilter(filter);
-			chooser.showOpenDialog(null);
-
-			if (chooser.getSelectedFile() != null) {
-				try {
-					FileInputStream fileIn = new FileInputStream(chooser.getSelectedFile());
-					ObjectInputStream in = new ObjectInputStream(fileIn);
-
-					GUI newGui = (GUI) in.readObject();
-
-					gui.setNodes(newGui.getNodes());
-					gui.setSelectedNode(newGui.getSelectedNode());
-					gui.setBeginningNode(newGui.getBeginningNode());
-
-					gui.repaint();
-
-					System.out.println(gui.getNodes());
-					in.close();
-					fileIn.close();
-
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-			}
-
-		});
-
-		fileMenu.add(readInState);
-
-		fileMenu.addSeparator();
-
-		JMenuItem exitItem = new JMenuItem("Exit");
-		exitItem.addActionListener(e -> {
-			System.exit(0);
-		});
-
-		fileMenu.add(exitItem);
-
-		menuBar.add(fileMenu);
 		//
 
+		menuBar.add(createEditMenu());
+
+		f.setJMenuBar(menuBar);
+	}
+
+	private static JMenu createEditMenu() {
 		JMenu editMenu = new JMenu("Edit");
 
-		JMenuItem editConnection = new JMenuItem("Edit connection");
-		editConnection.addActionListener(e -> {
-			if (gui.getSelectedConnection() != null) {
-				JFrame frame = new JFrame("Edit Connection");
-				frame.setSize(EditConnectionView.WIDTH, EditConnectionView.HEIGHT);
-				frame.add(new EditConnectionView(gui.getSelectedConnection()));
-				frame.setVisible(true);
+		editMenu.add(createEditConnectionButton());
+		editMenu.addSeparator();
+		editMenu.add(createEditNodeButton());
 
-				frame.addWindowListener(new WindowAdapter() {
-					@Override
-					public void windowClosing(WindowEvent e) {
-						f.setEnabled(true);
-					}
+		//
 
-				});
+		JMenu stateMenu = new JMenu("Change State");
 
-				f.setEnabled(false);
+		stateMenu.add(createBeginningNodeButton());
+		stateMenu.add(createTerminalNodeButton());
+		stateMenu.add(createRegularNodeButton());
+
+		editMenu.add(stateMenu);
+
+		return editMenu;
+	}
+
+	private static JMenuItem createRegularNodeButton() {
+		JMenuItem toReturn = new JMenuItem("Regular Node");
+		toReturn.addActionListener(e -> {
+			if (gui.getSelectedNode() != null) {
+				gui.getSelectedNode().setNodeState(NodeState.REGULAR);
+				gui.repaint();
 			} else {
-				JOptionPane.showMessageDialog(null, "ERROR: No connection selected");
+				JOptionPane.showMessageDialog(null, "ERROR: No node selected");
 			}
 		});
-		editMenu.add(editConnection);
-		editMenu.addSeparator();
+		return toReturn;
+	}
 
-		JMenuItem editNode = new JMenuItem("Edit node");
-		editNode.addActionListener(e -> {
+	private static JMenuItem createTerminalNodeButton() {
+		JMenuItem toReturn = new JMenuItem("Terminal Node");
+		toReturn.addActionListener(e -> {
+			if (gui.getSelectedNode() != null) {
+				gui.getSelectedNode().setNodeState(NodeState.TERMINAL);
+				gui.repaint();
+			} else {
+				JOptionPane.showMessageDialog(null, "ERROR: No node selected");
+			}
+
+		});
+		return toReturn;
+	}
+
+	private static JMenuItem createBeginningNodeButton() {
+		JMenuItem toReturn = new JMenuItem("Beginning Node");
+		toReturn.addActionListener(e -> {
+			if (gui.getSelectedNode() != null) {
+				boolean alreadyHasBeginningNode = false;
+
+				for (Node currNode : gui.getNodes()) {
+					if (currNode.getNodeState().equals(NodeState.BEGINNING)) {
+						alreadyHasBeginningNode = true;
+						break;
+					}
+				}
+
+				if (!alreadyHasBeginningNode) {
+					gui.getSelectedNode().setNodeState(NodeState.BEGINNING);
+					gui.repaint();
+				} else {
+					JOptionPane.showMessageDialog(null, "ERROR: Beginning node already exists");
+				}
+			} else {
+				JOptionPane.showMessageDialog(null, "ERROR: No node selected");
+			}
+		});
+		return toReturn;
+	}
+
+	private static JMenuItem createEditNodeButton() {
+		JMenuItem toReturn = new JMenuItem("Edit node");
+		toReturn.addActionListener(e -> {
 			if (gui.getSelectedNode() != null) {
 				String newName;
 
@@ -217,63 +218,101 @@ public class Main {
 				}
 			}
 		});
+		return toReturn;
+	}
 
-		editMenu.add(editNode);
+	private static JMenuItem createEditConnectionButton() {
+		JMenuItem toReturn = new JMenuItem("Edit connection");
+		toReturn.addActionListener(e -> {
+			if (gui.getSelectedConnection() != null) {
+				JFrame frame = new JFrame("Edit Connection");
+				frame.setSize(EditConnectionView.WIDTH, EditConnectionView.HEIGHT);
+				frame.add(new EditConnectionView(gui.getSelectedConnection()));
+				frame.setVisible(true);
 
-		JMenu stateMenu = new JMenu("Change State");
-
-		JMenuItem beginningNode = new JMenuItem("Beginning Node");
-		beginningNode.addActionListener(e -> {
-			if (gui.getSelectedNode() != null) {
-				boolean alreadyHasBeginningNode = false;
-
-				for (Node currNode : gui.getNodes()) {
-					if (currNode.getNodeState().equals(NodeState.BEGINNING)) {
-						alreadyHasBeginningNode = true;
-						break;
+				frame.addWindowListener(new WindowAdapter() {
+					@Override
+					public void windowClosing(WindowEvent e) {
+						f.setEnabled(true);
 					}
-				}
 
-				if (!alreadyHasBeginningNode) {
-					gui.getSelectedNode().setNodeState(NodeState.BEGINNING);
+				});
+
+				f.setEnabled(false);
+			} else {
+				JOptionPane.showMessageDialog(null, "ERROR: No connection selected");
+			}
+		});
+		return toReturn;
+	}
+
+	private static JMenu createFileMenu() {
+		JMenu fileMenu = new JMenu("File");
+		fileMenu.add(createWriteOutButton());
+		fileMenu.add(createReadInButton());
+		fileMenu.addSeparator();
+		fileMenu.add(createExitItemButton());
+		return fileMenu;
+	}
+
+	private static JMenuItem createExitItemButton() {
+		JMenuItem toReturn = new JMenuItem("Exit");
+		toReturn.addActionListener(e -> {
+			System.exit(0);
+		});
+		return toReturn;
+	}
+
+	private static JMenuItem createReadInButton() {
+		JMenuItem toReturn = new JMenuItem("Read in state");
+		toReturn.addActionListener(e -> {
+			JFileChooser chooser = new JFileChooser("Select State File");
+			FileNameExtensionFilter filter = new FileNameExtensionFilter("SER Files", "ser");
+			chooser.setFileFilter(filter);
+			chooser.showOpenDialog(null);
+			if (chooser.getSelectedFile() != null) {
+				try {
+					FileInputStream fileIn = new FileInputStream(chooser.getSelectedFile());
+					ObjectInputStream in = new ObjectInputStream(fileIn);
+
+					GUI newGui = (GUI) in.readObject();
+
+					gui.setNodes(newGui.getNodes());
+					gui.setSelectedNode(newGui.getSelectedNode());
+					gui.setBeginningNode(newGui.getBeginningNode());
+
 					gui.repaint();
-				} else {
-					JOptionPane.showMessageDialog(null, "ERROR: Beginning node already exists");
+
+					System.out.println(gui.getNodes());
+					in.close();
+					fileIn.close();
+
+				} catch (Exception ex) {
+					ex.printStackTrace();
 				}
-			} else {
-				JOptionPane.showMessageDialog(null, "ERROR: No node selected");
 			}
 		});
+		return toReturn;
+	}
 
-		JMenuItem terminalNode = new JMenuItem("Terminal Node");
-		terminalNode.addActionListener(e -> {
-			if (gui.getSelectedNode() != null) {
-				gui.getSelectedNode().setNodeState(NodeState.TERMINAL);
-				gui.repaint();
-			} else {
-				JOptionPane.showMessageDialog(null, "ERROR: No node selected");
+	private static JMenuItem createWriteOutButton() {
+		JMenuItem toReturn = new JMenuItem("Write out state");
+		toReturn.addActionListener(e -> {
+			try {
+				String serialName = JOptionPane.showInputDialog(null, "Enter name of file");
+
+				if (serialName != null) {
+					FileOutputStream fileOut = new FileOutputStream("./serials/" + serialName + ".ser");
+					ObjectOutputStream out = new ObjectOutputStream(fileOut);
+					out.writeObject(gui);
+					out.close();
+					fileOut.close();
+					System.out.printf("Serialized data is saved in ./serials/" + serialName + ".ser");
+				}
+			} catch (IOException i) {
+				i.printStackTrace();
 			}
-
 		});
-
-		JMenuItem regularNode = new JMenuItem("Regular Node");
-		regularNode.addActionListener(e -> {
-			if (gui.getSelectedNode() != null) {
-				gui.getSelectedNode().setNodeState(NodeState.REGULAR);
-				gui.repaint();
-			} else {
-				JOptionPane.showMessageDialog(null, "ERROR: No node selected");
-			}
-		});
-
-		stateMenu.add(beginningNode);
-		stateMenu.add(terminalNode);
-		stateMenu.add(regularNode);
-
-		editMenu.add(stateMenu);
-
-		menuBar.add(editMenu);
-
-		f.setJMenuBar(menuBar);
+		return toReturn;
 	}
 }
