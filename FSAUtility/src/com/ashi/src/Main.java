@@ -91,6 +91,7 @@ public class Main {
 				for (Node node : gui.getNodes()) {
 					if (node.getNodeState() == NodeState.BEGINNING) {
 						createTestingInterface(node, inputsBox);
+						return;
 					}
 				}
 
@@ -114,7 +115,8 @@ public class Main {
 		List<String> tokens = new ArrayList<>(Arrays.asList(inputsBox.getText().split(" ")));
 
 		JFrame testFrame = new JFrame("Test input");
-		testFrame.setSize(TestInputView.WIDTH, TestInputView.HEIGHT);
+		testFrame.setSize(TestInputView.WIDTH,
+				TestInputView.BASE_HEIGHT + TestInputView.HEIGHT_PER_CONNECTION_ITEM * tokens.size());
 
 		testFrame.add(new TestInputView(tokens, node));
 		testFrame.setVisible(true);
@@ -381,7 +383,8 @@ public class Main {
 
 	/**
 	 * Creates button to write out GUI state in "serials" folder
-	 * @return
+	 * 
+	 * @return Write out button
 	 */
 	private static JMenuItem createWriteOutButton() {
 		JMenuItem toReturn = new JMenuItem("Write out state");
