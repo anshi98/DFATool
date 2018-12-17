@@ -26,19 +26,32 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+/**
+ * Custom JPanel used to do anything graphical in the program (Working with
+ * nodes, connections, etc.)
+ * 
+ * @author Andy
+ *
+ */
 @SuppressWarnings("serial")
 public class GUI extends JPanel implements Serializable {
 
-	private static final int CLICKBOX = 4;
-	private static final int ARC_HEIGHT = 60;
+	private static final int CLICKBOX = 4; // It's impossible to click on a connection line exactly, so the program must
+											// see if a connection line is close enough to the click. This is done by
+											// creating a box of size CLICKBOX around the cursor and seeing if it
+											// intersects a line. This allows for easy connection selection
+	private static final int ARC_HEIGHT = 60; // Two nodes that connect to each other will need to have their connection
+												// lines arced so you can distinguish between them
 
 	private List<Node> nodes;
 	private Node selectedNode;
-	private Node beginningNode;
+	private Node beginningNode; // If you want to create a connection between nodes, the program will see if you
+								// selected a initial node that will hold the connection, which is stored in
+								// this variable. If not, the program will just select a node like normal
 	private Connection selectedConnection;
-	private int nodeIndex = 0;
-	private Shape arc = null;
-	private Node testNode = null;
+	private int nodeIndex = 0; // Used to give default names to the nodes based on their index
+	private Shape arc = null; // TODO probably remove
+	private Node testNode = null; // Used to highlight the node you're currently on in query string testing
 
 	private int screenX, screenY, panelX, panelY;
 

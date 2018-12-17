@@ -8,18 +8,35 @@ import java.util.Set;
 
 import javax.swing.JComponent;
 
+/**
+ * Object used to represent a node in the automata. Purely information, as the
+ * GUI is the one that draws the nodes based on the information given by the
+ * node (position, radius, name, etc.)
+ * 
+ * @author Andy
+ *
+ */
 @SuppressWarnings("serial")
 public class Node extends JComponent implements Serializable {
 	public static final int RADIUS = 50;
-	public static final int INNER_RADIUS_TERMINAL = (int) (RADIUS * 0.80);
-	public static final int BEGINNING_ARROW_OFFSET = 100;
-	public static final int LOOP_ARROW_OFFSET = 150;
+	public static final int INNER_RADIUS_TERMINAL = (int) (RADIUS * 0.80); // Terminal nodes have an inner circle. This
+																			// constant determines the radius of the
+																			// inner circle
+	public static final int BEGINNING_ARROW_OFFSET = 100; // Beginning nodes are represented with an arrow pointing
+															// inwards to the center from the left. This constant
+															// determines the
+															// length of the arrow
+	public static final int LOOP_ARROW_OFFSET = 150; // If a node loops back on itself upon a certain query string, this
+														// will be indicated by an inwards-pointing arrow from the
+														// bottom containing the accepted string. This constant
+														// determines the length of the arrow
 
 	private int xPos;
 	private int yPos;
 	private String name;
 	private NodeState nodeState;
-	private Map<Node, Set<String>> connections;
+	private Map<Node, Set<String>> connections; // The node variable contains the opposite node being referred to in the
+												// connection
 
 	public Node(int xPos, int yPos, String name, NodeState nodeState) {
 		this.xPos = xPos;
@@ -31,24 +48,31 @@ public class Node extends JComponent implements Serializable {
 	}
 
 	/**
+	 * Sees if node has been clicked based on given x and y mouse coordinates during
+	 * click
 	 * 
-	 * @param clickedX
-	 * @param clickedY
-	 * @return
+	 * @param x coordinate of mouse during click
+	 * @param y coordinate of mouse during click
+	 * @return Whether the node has been clicked
 	 */
 	public boolean clickedOn(int clickedX, int clickedY) {
 		return Math.pow((xPos - clickedX), 2) + Math.pow((yPos - clickedY), 2) < Math.pow(RADIUS, 2);
 	}
 
 	/**
+	 * Creates a connection to another node
 	 * 
-	 * @param node
+	 * @param Opposite node
+	 * @param Accepted keyword (Trigger)
 	 */
 	public void addNode(Node node, String trigger) {
 		if (connections.get(node) == null) {
 			connections.put(node, new HashSet<>());
 		}
 
+		// Remember that "connections" is an object that every node has. It maps a set
+		// of all
+		// accepted query strings from the current node to the opposite node
 		Set<String> toAddTo = connections.get(node);
 
 		toAddTo.add(trigger);
@@ -94,17 +118,28 @@ public class Node extends JComponent implements Serializable {
 		this.connections = connections;
 	}
 
+	/*
+	 * Connections variable is not printed due to the possibility of a stack
+	 * overflow if automata contains nodes the connect to each other in a closed
+	 * loop
+	 */
 	@Override
 	public String toString() {
 		return xPos + " " + yPos + " " + name + " " + nodeState;
 	}
 
+	/**
+	 * Uses only name and nodeState variables
+	 */
 	@Override
 	public boolean equals(Object other) {
 		Node otherNode = (Node) other;
 		return this.name.equals(otherNode.name) && this.nodeState.equals(otherNode.nodeState);
 	}
 
+	/**
+	 * Uses only name and nodeState variables
+	 */
 	@Override
 	public int hashCode() {
 		return name.hashCode() + nodeState.hashCode();

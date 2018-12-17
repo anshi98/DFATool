@@ -11,6 +11,12 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+/**
+ * Window for testing automata with query string
+ * 
+ * @author Andy
+ *
+ */
 @SuppressWarnings("serial")
 public class TestInputView extends JPanel {
 	public static final int WIDTH = 300; // Width of testing window
@@ -59,12 +65,34 @@ public class TestInputView extends JPanel {
 	private JButton initTestButton() {
 		JButton downButton = new JButton("Test");
 		downButton.addActionListener(e -> {
+			// TESTING CODE
+			for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
+				System.out.println(entry);
+			}
 
+			// Due to the getConnections() being a set, it's possible that if a node has a
+			// connection to itself with accepted string X, along with connection to another
+			// node with the same accepted string X, it's possible for the connection with
+			// the other node to be considered first, which is incorrect behavior, so the
+			// program must check first whether there's a self-looping connection to test
+			// first
+			for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
+				if (node.equals(entry.getKey())
+						&& entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
+					// Found self looping node with the desired query string
+
+					Main.gui.setTestNode(node);
+					Main.gui.repaint();
+					list.setSelectedIndex(list.getSelectedIndex() + 1);
+
+					// No need to check for rest of nodes, so exit
+					return;
+				}
+			}
 			for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
 				// "entry" contains a node connected to the current node, along with all strings
 				// that are accepted for that node. This for loop goes through all these
 				// connections
-				System.out.println(entry);
 				if (list.getSelectedIndex() != inputs.size() - 1
 						&& entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
 					// If not at the end of the query string and found a connection accepting the
