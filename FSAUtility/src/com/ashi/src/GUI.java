@@ -49,8 +49,8 @@ public class GUI extends JPanel implements Serializable {
 								// selected a initial node that will hold the connection, which is stored in
 								// this variable. If not, the program will just select a node like normal
 	private Connection selectedConnection;
+	private Shape currConnection = null;
 	private int nodeIndex = 0; // Used to give default names to the nodes based on their index
-	private Shape arc = null; // TODO probably remove
 	private Node testNode = null; // Used to highlight the node you're currently on in query string testing
 
 	private int screenX, screenY, panelX, panelY;
@@ -132,7 +132,7 @@ public class GUI extends JPanel implements Serializable {
 
 		addMouseListener(new CustomMouseListener());
 		addMouseMotionListener(new CustomMouseListener());
-		addKeyListener(new CustomKeyListener());
+		// addKeyListener(new CustomKeyListener());
 
 		nodes = new ArrayList<>();
 
@@ -140,183 +140,145 @@ public class GUI extends JPanel implements Serializable {
 
 	}
 
-	private class CustomKeyListener implements KeyListener {
-
-		@Override
-		public void keyPressed(KeyEvent arg0) {
-
-			if (arg0.getKeyCode() == KeyEvent.VK_DELETE) {
-
-				if (selectedNode != null) {
-					Iterator<Node> iter = nodes.iterator();
-					while (iter.hasNext()) {
-						Node currNode = iter.next();
-						Map<Node, Set<String>> connections = currNode.getConnections();
-						connections.remove(selectedNode);
-					}
-
-					nodes.remove(selectedNode);
-
-					selectedNode = null;
-
-				} else if (selectedConnection != null) {
-					Node startingNode = selectedConnection.getStartNode();
-					Node endingNode = selectedConnection.getEndNode();
-
-					startingNode.getConnections().remove(endingNode);
-
-					selectedConnection = null;
-				}
-
-				repaint();
-			}
-		}
-
-		@Override
-		public void keyReleased(KeyEvent arg0) {
-		}
-
-		@Override
-		public void keyTyped(KeyEvent arg0) {
-
-		}
-
-	}
+	/*
+	 * private class CustomKeyListener implements KeyListener {
+	 * 
+	 * @Override public void keyPressed(KeyEvent arg0) {
+	 * 
+	 * if (arg0.getKeyCode() == KeyEvent.VK_DELETE) {
+	 * 
+	 * if (selectedNode != null) { Iterator<Node> iter = nodes.iterator(); while
+	 * (iter.hasNext()) { Node currNode = iter.next(); Map<Node, Set<String>>
+	 * connections = currNode.getConnections(); connections.remove(selectedNode); }
+	 * 
+	 * nodes.remove(selectedNode);
+	 * 
+	 * selectedNode = null;
+	 * 
+	 * } else if (selectedConnection != null) { Node startingNode =
+	 * selectedConnection.getStartNode(); Node endingNode =
+	 * selectedConnection.getEndNode();
+	 * 
+	 * startingNode.getConnections().remove(endingNode);
+	 * 
+	 * selectedConnection = null; }
+	 * 
+	 * repaint(); } }
+	 * 
+	 * @Override public void keyReleased(KeyEvent arg0) { }
+	 * 
+	 * @Override public void keyTyped(KeyEvent arg0) {
+	 * 
+	 * }
+	 * 
+	 * }
+	 */
 
 	private class CustomMouseListener extends MouseAdapter implements MouseMotionListener {
 		public void mousePressed(MouseEvent me) {
 
+			// Left click
+			// Check to see if node was clicked
 			if (me.getButton() == MouseEvent.BUTTON1) {
 				for (Node node : nodes) {
 
 					if (node.clickedOn(me.getX(), me.getY())) {
+						// Node has been clicked on. The program then checks if you want to create
+						// a connection, or select another node. If the beginning node is not null, then
+						// a connection is to be created
 						if (beginningNode != null) {
-							String trigger = JOptionPane.showInputDialog(null, "Enter accepted string");
-
-							if (trigger != null) {
-								if (!trigger.contains(" ")) {
-
-									beginningNode.addNode(node, trigger);
-
-									selectedNode = null;
-									beginningNode = null;
-									selectedConnection = null;
-
-									repaint();
-									return;
-								} else {
-									JOptionPane.showMessageDialog(null, "ERROR: Trigger cannot contain spaces");
-								}
-							}
+							createConnection(node);
+							// Connection has been created, so exit no matter what
+							return;
 						} else {
-							selectedNode = node;
-
-							screenX = me.getXOnScreen();
-							screenY = me.getYOnScreen();
-							panelX = me.getX();
-							panelY = me.getY();
-
-							beginningNode = null;
-							selectedConnection = null;
-
-							repaint();
+							// Not creating a connection so selecting another node
+							selectNode(node, me);
+							// New node has been selected, so exit no matter what
 							return;
 						}
 					}
+				}
+
+				// Node was not clicked, so user possibly clicked on connection
+				for (Node node : nodes) {
 
 					for (Node adj : node.getConnections().keySet()) {
-						System.out.println("E");
-						Line2D.Double currConnection = null;
-						arc = null;
-						if (node.equals(adj)) {
-							currConnection = new Line2D.Double(node.getxPos(), node.getyPos(), adj.getxPos(),
-									adj.getyPos());
+						// adj is the opposite node to all connections the current node has. So this
+						// loop is going through all connections, seeing if one has been clicked on
+
+						/*
+						 * This code works by going through every connection in the GUI, and assigning
+						 * currConnection with the actual line object of the connection depending on the
+						 * connection type (rounded arc for node pairs that are connected to each other,
+						 * a simple line for a one way connection between two nodes, and an inwards
+						 * up-pointing line for self-looping connections (To be added))
+						 */
+
+						/*
+						 * if (node.equals(adj)) { // Self connection currConnection = new
+						 * Line2D.Double(node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+						 * } else {
+						 */
+
+						// TODO detect click on self-looping connections
+
+						if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
+							// This connection contains 2 distinct nodes connected to each other
+
+							createRoundedLine(adj, node);
 						} else {
-							System.out.println("ELSE");
-							if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
-
-								double dx = adj.getxPos() - node.getxPos(), dy = adj.getyPos() - node.getyPos();
-								double angle = Math.atan2(dy, dx);
-								int len = (int) Math.sqrt(dx * dx + dy * dy);
-								AffineTransform at = AffineTransform.getTranslateInstance(node.getxPos(),
-										node.getyPos());
-								at.concatenate(AffineTransform.getRotateInstance(angle));
-
-								arc = new Arc2D.Double(0, 0 - ARC_HEIGHT / 2, len, ARC_HEIGHT, 0, 180, Arc2D.CHORD);
-
-								arc = at.createTransformedShape(arc);
-							} else {
-								currConnection = new Line2D.Double(node.getxPos(),
-										node.getyPos() + Node.LOOP_ARROW_OFFSET, node.getxPos(), node.getyPos());
-							}
+							// This connection is a one way connection between 2 distinct nodes
+							createSimpleLine(adj, node);
 
 						}
 
-						Rectangle clickbox = new Rectangle(me.getX() - CLICKBOX, me.getY() - CLICKBOX, CLICKBOX * 2,
-								CLICKBOX * 2);
+						// }
 
-						if (arc != null) {
-							System.out.println(arc.intersects(clickbox));
-
-							if (arc.intersects(clickbox)) {
-
-								selectedNode = null;
-								beginningNode = null;
-								selectedConnection = new Connection(node, adj);
-								repaint();
-								return;
-							}
-						} else {
-							if (currConnection.intersects(clickbox)) {
-
-								selectedNode = null;
-								beginningNode = null;
-								selectedConnection = new Connection(node, adj);
-								repaint();
-								return;
-							}
+						// Check if ***currently assigned*** connection line has been clicked
+						if (checkForConnectionClick(me, adj, node)) {
+							// Connection has been clicked so exit out and prevent variables from being
+							// reset
+							return;
 						}
+
 					}
 				}
 
-				// Clicked on empty space
-				selectedNode = null;
-				beginningNode = null;
-				selectedConnection = null;
+				// Clicked on empty space so reset variables
+				resetVariables();
 				repaint();
 			}
 
+			// Middle mouse
 			if (me.getButton() == MouseEvent.BUTTON2) {
-
-				for (Node node : nodes) {
-					if (node.clickedOn(me.getX(), me.getY())) {
-						selectedNode = null;
-						beginningNode = node;
-						selectedConnection = null;
-						repaint();
-						return;
-					}
+				// Check if beginning node for a connection was clicked
+				if (checkBeginningNodeSelected(me)) {
+					// Beginning node variable has been set, so exit out and prevent variables from
+					// being reset
+					return;
 				}
 
-				selectedNode = null;
-				beginningNode = null;
-				selectedConnection = null;
+				// No beginning node selected so restore variables back to default
+				resetVariables();
 
 				repaint();
 			}
 
+			// Right mouse
 			if (me.getButton() == MouseEvent.BUTTON3) {
-
+				// Create a new node
 				nodes.add(new Node(me.getX(), me.getY(), Integer.toString(nodeIndex++), NodeState.REGULAR));
 
-				selectedNode = null;
-				beginningNode = null;
-				selectedConnection = null;
+				// Reset all variables since a new node was just created
+				resetVariables();
 				repaint();
 			}
 
 		}
 
+		// Only activated if click is down and mouse is moving! Since a button has to be
+		// clicked, it's possible that selectedNode has changed to a selected node.
+		// Hence, if it's not null, it means you're dragging a node to a new position
 		public void mouseDragged(MouseEvent me) {
 			if (selectedNode != null) {
 
@@ -326,6 +288,7 @@ public class GUI extends JPanel implements Serializable {
 				selectedNode.setxPos(panelX + dx);
 				selectedNode.setyPos(panelY + dy);
 
+				// Node dragged to new position, so refresh screen
 				repaint();
 			}
 		}
@@ -336,6 +299,148 @@ public class GUI extends JPanel implements Serializable {
 
 	}
 
+	/**
+	 * Changes the passed-in node to be the new selected node, along with assigning
+	 * some coordinate variables with the given mouse event
+	 * 
+	 * @param node To assign to selected node variable
+	 * @param me   Event object to set screen and panel variables with
+	 */
+	private void selectNode(Node node, MouseEvent me) {
+		selectedNode = node;
+
+		screenX = me.getXOnScreen();
+		screenY = me.getYOnScreen();
+		panelX = me.getX();
+		panelY = me.getY();
+
+		// Reset node variables besides selectedNode
+		currConnection = null;
+		beginningNode = null;
+		selectedConnection = null;
+
+		// Refresh the GUI
+		repaint();
+	}
+
+	/**
+	 * Checks whether a node has been selected to be a beginning node
+	 * 
+	 * @param me To check whether a node has been selected
+	 * @return Whether a node has been assigned as a beginning node for a potential
+	 *         connection
+	 */
+	public boolean checkBeginningNodeSelected(MouseEvent me) {
+		for (Node node : nodes) {
+			if (node.clickedOn(me.getX(), me.getY())) {
+				selectedNode = null;
+				beginningNode = node;
+				selectedConnection = null;
+				repaint();
+				return true;
+			}
+		}
+
+		return false;
+
+	}
+
+	/**
+	 * Resets variables based on some clearing-action by the user (Clicking on empty
+	 * space)
+	 */
+	private void resetVariables() {
+		selectedNode = null;
+		currConnection = null;
+		beginningNode = null;
+		selectedConnection = null;
+	}
+
+	/**
+	 * Checks to see if the assigned connection line has been clicked. If it has,
+	 * create a connection object with the associated front and end nodes
+	 * 
+	 * @param me       MouseEvent to check if the curve has been clicked
+	 * @param adj      The adjacent node of the connection
+	 * @param currNode The original node of the connection
+	 * @return Whether the curve has been clicked
+	 */
+	public boolean checkForConnectionClick(MouseEvent me, Node adj, Node currNode) {
+		Rectangle clickbox = new Rectangle(me.getX() - CLICKBOX, me.getY() - CLICKBOX, CLICKBOX * 2, CLICKBOX * 2);
+
+		if (currConnection.intersects(clickbox)) {
+			// Connection has been clicked (i.e. clickbox intersects the stored line
+			// object), so reset node variables (Since nodes weren't clicked), and change
+			// the selected connection now that the program knows what connection has been
+			// clicked
+			selectedNode = null;
+			beginningNode = null;
+			selectedConnection = new Connection(currNode, adj);
+			repaint();
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Creates a curve object (Straight line) from a one-way connection
+	 * 
+	 * @param adj  Adjacent node of the connection
+	 * @param node Original node of the connection
+	 */
+	public void createSimpleLine(Node adj, Node node) {
+		currConnection = new Line2D.Double(node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+	}
+
+	/**
+	 * Creates a curve object (Rounded curve) from a pair of nodes that are
+	 * connected to each other
+	 * 
+	 * @param adj      Adjacent node of the connection
+	 * @param currNode Original node of the connection
+	 */
+	public void createRoundedLine(Node adj, Node currNode) {
+		double dx = adj.getxPos() - currNode.getxPos(), dy = adj.getyPos() - currNode.getyPos();
+		double angle = Math.atan2(dy, dx);
+		int len = (int) Math.sqrt(dx * dx + dy * dy);
+		AffineTransform at = AffineTransform.getTranslateInstance(currNode.getxPos(), currNode.getyPos());
+		at.concatenate(AffineTransform.getRotateInstance(angle));
+
+		currConnection = new Arc2D.Double(0, 0 - ARC_HEIGHT / 2, len, ARC_HEIGHT, 0, 180, Arc2D.CHORD);
+
+		currConnection = at.createTransformedShape(currConnection);
+	}
+
+	/**
+	 * Creates a connection from the selected node with another node with an
+	 * accepted string determined by the user
+	 * 
+	 * @param otherNode The other node for the current node to connect to
+	 */
+	private void createConnection(Node otherNode) {
+		String trigger = JOptionPane.showInputDialog(null, "Enter accepted string");
+
+		if (trigger != null) {
+			// Trigger cannot contain spaces, due to spaces used to separate triggers
+			if (!trigger.contains(" ")) {
+
+				// Add a connection to the current node with the specified trigger to the other
+				// node
+				beginningNode.addNode(otherNode, trigger);
+
+				// Reset variables due to a connection just being created
+				resetVariables();
+
+				// Refresh the GUI
+				repaint();
+				return;
+			} else {
+				JOptionPane.showMessageDialog(null, "ERROR: Trigger cannot contain spaces");
+			}
+		}
+	}
+
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -343,8 +448,8 @@ public class GUI extends JPanel implements Serializable {
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		if (arc != null) {
-			g2d.draw(arc);
+		if (currConnection != null) {
+			g2d.draw(currConnection);
 		}
 
 		for (Node node : nodes) {

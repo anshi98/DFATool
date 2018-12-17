@@ -65,53 +65,73 @@ public class TestInputView extends JPanel {
 	private JButton initTestButton() {
 		JButton downButton = new JButton("Test");
 		downButton.addActionListener(e -> {
-			// TESTING CODE
-			for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
-				System.out.println(entry);
-			}
-
-			// Due to the getConnections() being a set, it's possible that if a node has a
-			// connection to itself with accepted string X, along with connection to another
-			// node with the same accepted string X, it's possible for the connection with
-			// the other node to be considered first, which is incorrect behavior, so the
-			// program must check first whether there's a self-looping connection to test
-			// first
-			for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
-				if (node.equals(entry.getKey())
-						&& entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
-					// Found self looping node with the desired query string
-
-					Main.gui.setTestNode(node);
-					Main.gui.repaint();
-					list.setSelectedIndex(list.getSelectedIndex() + 1);
-
-					// No need to check for rest of nodes, so exit
-					return;
+			// If program can't find self loop, carry on with checking rest of the nodes
+			if (!checkForSelfLoop()) {
+				if (!checkOtherNodes()) {
+					// No connections found accepting the query string segment
+					JOptionPane.showMessageDialog(null, "ERROR: No connection found");
 				}
 			}
-			for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
-				// "entry" contains a node connected to the current node, along with all strings
-				// that are accepted for that node. This for loop goes through all these
-				// connections
-				if (list.getSelectedIndex() != inputs.size() - 1
-						&& entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
-					// If not at the end of the query string and found a connection accepting the
-					// wanted query string segment, change the current node to the node accepting
-					// the segment
-					node = entry.getKey();
-
-					Main.gui.setTestNode(node);
-					Main.gui.repaint();
-					list.setSelectedIndex(list.getSelectedIndex() + 1);
-					return;
-				}
-			}
-
-			JOptionPane.showMessageDialog(null, "ERROR: No connection found");
 
 		});
 
 		return downButton;
+	}
+
+	/**
+	 * Checks to see if there's another node to accept the query segment
+	 * 
+	 * @return Whether another node containing the accepted string has been found
+	 */
+	private boolean checkOtherNodes() {
+		for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
+			// "entry" contains a node connected to the current node, along with all strings
+			// that are accepted for that node. This for loop goes through all these
+			// connections
+			if (list.getSelectedIndex() != inputs.size() - 1
+					&& entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
+				// If not at the end of the query string and found a connection accepting the
+				// wanted query string segment, change the current node to the node accepting
+				// the segment
+				node = entry.getKey();
+
+				Main.gui.setTestNode(node);
+				Main.gui.repaint();
+				list.setSelectedIndex(list.getSelectedIndex() + 1);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks to see if there's a self-looping connection to be considered first
+	 * 
+	 * @return Whether a self-looping connection has been found
+	 */
+	private boolean checkForSelfLoop() {
+		// Due to the getConnections() being a set, it's possible that if a node has a
+		// connection to itself with accepted string X, along with connection to another
+		// node with the same accepted string X, it's possible for the connection with
+		// the other node to be considered first, which is incorrect behavior, so the
+		// program must check first whether there's a self-looping connection to test
+		// first
+		for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
+			if (node.equals(entry.getKey())
+					&& entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
+				// Found self looping node with the desired query string
+
+				Main.gui.setTestNode(node);
+				Main.gui.repaint();
+				list.setSelectedIndex(list.getSelectedIndex() + 1);
+
+				// No need to check for rest of nodes, so exit
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -120,19 +140,15 @@ public class TestInputView extends JPanel {
 	 */
 	private void initList() {
 		dlm = new DefaultListModel<>();
-
 		list = new JList<>(dlm);
+		// Make segments non-selectable
 		list.setEnabled(false);
 		inputs.add(0, "START");
-
 		for (String input : inputs) {
 			dlm.addElement(input);
 		}
-
 		list.setSelectedIndex(0);
-
 		add(list, BorderLayout.NORTH);
-
 		Main.gui.setTestNode(node);
 	}
 
