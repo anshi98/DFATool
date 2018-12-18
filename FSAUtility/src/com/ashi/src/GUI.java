@@ -203,7 +203,7 @@ public class GUI extends JPanel implements Serializable {
 				for (Node node : nodes) {
 
 					for (Node adj : node.getConnections().keySet()) {
-						// adj is the opposite node to all connections the current node has. So this
+						// Adj is the opposite node to all connections the current node has. So this
 						// loop is going through all connections, seeing if one has been clicked on
 
 						/*
