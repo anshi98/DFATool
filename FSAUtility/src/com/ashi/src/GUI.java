@@ -40,9 +40,9 @@ public class GUI extends JPanel implements Serializable {
 											// see if a connection line is close enough to the click. This is done by
 											// creating a box of size CLICKBOX around the cursor and seeing if it
 											// intersects a line. This allows for easy connection selection
-	private static final int ARC_HEIGHT = 60; // Two nodes that connect to each other will need to have their connection
-												// lines arced so you can distinguish between them
-
+	private static final int ARC_HEIGHT = 60; // Two nodes that connect to each other will need to have their
+												// connection lines arced so you can distinguish between them
+	private static final int NODE_NAME_HEIGHT_OFFSET = 70; // Height to offset name of node by
 	private List<Node> nodes;
 	private Node selectedNode;
 	private Node beginningNode; // If you want to create a connection between nodes, the program will see if you
@@ -448,87 +448,174 @@ public class GUI extends JPanel implements Serializable {
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		if (currConnection != null) {
-			g2d.draw(currConnection);
-		}
+		/*
+		 * if (currConnection != null) { g2d.draw(currConnection); }
+		 */
 
 		for (Node node : nodes) {
-			g2d.drawOval(node.getxPos() - Node.RADIUS, node.getyPos() - Node.RADIUS, Node.RADIUS * 2, Node.RADIUS * 2);
-
 			if (node.getNodeState() == NodeState.TERMINAL) {
-				g2d.drawOval(node.getxPos() - Node.INNER_RADIUS_TERMINAL, node.getyPos() - Node.INNER_RADIUS_TERMINAL,
-						Node.INNER_RADIUS_TERMINAL * 2, Node.INNER_RADIUS_TERMINAL * 2);
+				// Terminal node, so the program must render two circles
+
+				if (selectedNode != null && node.equals(selectedNode)) {
+					// Colored blue since selected
+					g2d.setColor(Color.BLUE);
+					drawTerminalNode(g2d, node);
+				} else if (beginningNode != null && node.equals(beginningNode)) {
+					// Colored green since beginning node
+					g2d.setColor(Color.GREEN);
+					drawTerminalNode(g2d, node);
+				} else if (testNode != null && node.equals(testNode)) {
+					// Colored red since test node
+					g2d.setColor(Color.RED);
+					drawTerminalNode(g2d, node);
+				} else {
+					// Simply draw without color
+					drawTerminalNode(g2d, node);
+				}
 			}
 
 			if (node.getNodeState() == NodeState.BEGINNING) {
-				drawArrow(g2d, node.getxPos() - Node.BEGINNING_ARROW_OFFSET, node.getyPos(), node.getxPos(),
-						node.getyPos());
+				// Beginning node, so the program must render the inwards pointing arrow
+				if (selectedNode != null && node.equals(selectedNode)) {
+					// Colored blue since selected
+					g2d.setColor(Color.BLUE);
+					drawBeginningNode(g2d, node);
+				} else if (beginningNode != null && node.equals(beginningNode)) {
+					// Colored green since beginning node
+					g2d.setColor(Color.GREEN);
+					drawBeginningNode(g2d, node);
+				} else if (testNode != null && node.equals(testNode)) {
+					// Colored red since test node
+					g2d.setColor(Color.RED);
+					drawBeginningNode(g2d, node);
+				} else {
+					// Simply draw without color
+					drawBeginningNode(g2d, node);
+				}
+
 			}
 
-			drawCenteredString(g, node.getName(), new Rectangle(node.getxPos() - Node.RADIUS,
-					(int) (node.getyPos() - (Node.RADIUS * 2.25f)), Node.RADIUS * 2, Node.RADIUS * 2));
+			if (node.getNodeState() == NodeState.REGULAR) {
+				// Regular node, so just draw normally
+				if (selectedNode != null && node.equals(selectedNode)) {
+					// Colored blue since selected
+					g2d.setColor(Color.BLUE);
+					drawRegularNode(g2d, node);
+				} else if (beginningNode != null && node.equals(beginningNode)) {
+					// Colored green since beginning
+					g2d.setColor(Color.GREEN);
+					drawRegularNode(g2d, node);
+				} else if (testNode != null && node.equals(testNode)) {
+					// Colored red since test node
+					g2d.setColor(Color.RED);
+					drawRegularNode(g2d, node);
+				} else {
+					// Simply draw without color
+					drawRegularNode(g2d, node);
+				}
+			}
 
+			// Draw node name
+			drawNodeName(g2d, node);
+
+			// Reset color back to default
+			g2d.setColor(Color.BLACK);
+
+			// Draw connections
 			for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
 				Node adj = entry.getKey();
 				Set<String> triggers = entry.getValue();
 
+				// Current connection is selected, so draw it in blue
 				if (selectedConnection != null && selectedConnection.getStartNode().equals(node)
 						&& selectedConnection.getEndNode().equals(adj)) {
 					g2d.setColor(Color.BLUE);
 					if (selectedConnection.getStartNode().equals(selectedConnection.getEndNode())) {
+						// Beginning and end nodes are the same, so draw self loop
 						drawLoopArrow(triggers, g2d, node);
+					} else if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
+						// Beginning and end nodes are connected both ways, so must draw arc
+						drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
 					} else {
-
-						if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
-							drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(),
-									adj.getyPos());
-						} else {
-							drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
-						}
-					}
-					g2d.setColor(Color.BLACK);
-				} else {
-					if (entry.getKey().equals(node)) {
-						drawLoopArrow(triggers, g2d, node);
-					} else {
-						if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
-							drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(),
-									adj.getyPos());
-						} else {
-							drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
-						}
+						// Draw line since it's only a one way connection
+						drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
 					}
 				}
 
+				else {
+					// Connection not selected
+					if (entry.getKey().equals(node)) {
+						// Connection has end points as the same nodes, hence connection is self looping
+						drawLoopArrow(triggers, g2d, node);
+					} else if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
+						// Connection contains 2 nodes connected to each other, hence you draw an arc
+						drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+					} else {
+						// Connection contains one way connection between nodes, hence a simple arrow
+						drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+					}
+
+				}
+
 			}
-		}
-
-		if (selectedNode != null) {
-			g2d.setColor(Color.BLUE);
-
-			g2d.drawOval(selectedNode.getxPos() - Node.RADIUS, selectedNode.getyPos() - Node.RADIUS, Node.RADIUS * 2,
-					Node.RADIUS * 2);
-			drawCenteredString(g, selectedNode.getName(), new Rectangle(selectedNode.getxPos() - Node.RADIUS,
-					(int) (selectedNode.getyPos() - (Node.RADIUS * 2.25f)), Node.RADIUS * 2, Node.RADIUS * 2));
-		}
-
-		if (beginningNode != null) {
-			g2d.setColor(Color.GREEN);
-
-			g2d.drawOval(beginningNode.getxPos() - Node.RADIUS, beginningNode.getyPos() - Node.RADIUS, Node.RADIUS * 2,
-					Node.RADIUS * 2);
-			drawCenteredString(g, beginningNode.getName(), new Rectangle(beginningNode.getxPos() - Node.RADIUS,
-					(int) (beginningNode.getyPos() - (Node.RADIUS * 2.25f)), Node.RADIUS * 2, Node.RADIUS * 2));
-		}
-
-		if (testNode != null) {
-			g2d.setColor(Color.RED);
-
-			g2d.drawOval(testNode.getxPos() - Node.RADIUS, testNode.getyPos() - Node.RADIUS, Node.RADIUS * 2,
-					Node.RADIUS * 2);
+			// Reset color back to default
+			g2d.setColor(Color.BLACK);
 		}
 	}
 
+	/**
+	 * Draws the node name of a given node
+	 * 
+	 * @param g2d  The graphics object to draw with
+	 * @param node The node to display the name of
+	 */
+	private void drawNodeName(Graphics2D g2d, Node node) {
+		drawCenteredString(g2d, node.getName(), new Rectangle(node.getxPos() - Node.RADIUS,
+				(int) (node.getyPos() - (Node.RADIUS + NODE_NAME_HEIGHT_OFFSET)), Node.RADIUS * 2, Node.RADIUS * 2));
+	}
+
+	/**
+	 * Draws regular node with a single circle
+	 * 
+	 * @param g2d  The graphics object to draw with
+	 * @param node The node to draw
+	 */
+	private void drawRegularNode(Graphics2D g2d, Node node) {
+		g2d.drawOval(node.getxPos() - Node.RADIUS, node.getyPos() - Node.RADIUS, Node.RADIUS * 2, Node.RADIUS * 2);
+
+	}
+
+	/**
+	 * Draws beginning node with a single circle and an arrow pointing inwards from
+	 * the left
+	 * 
+	 * @param g2d  The graphics object to draw with
+	 * @param node The node to draw
+	 */
+	private void drawBeginningNode(Graphics2D g2d, Node node) {
+		drawArrow(g2d, node.getxPos() - Node.BEGINNING_ARROW_OFFSET, node.getyPos(), node.getxPos(), node.getyPos());
+		g2d.drawOval(node.getxPos() - Node.RADIUS, node.getyPos() - Node.RADIUS, Node.RADIUS * 2, Node.RADIUS * 2);
+	}
+
+	/**
+	 * Draws terminal node with a double circles
+	 * 
+	 * @param g2d  The graphics object to draw with
+	 * @param node The node to draw
+	 */
+	private void drawTerminalNode(Graphics2D g2d, Node node) {
+		g2d.drawOval(node.getxPos() - Node.RADIUS, node.getyPos() - Node.RADIUS, Node.RADIUS * 2, Node.RADIUS * 2);
+		g2d.drawOval(node.getxPos() - Node.INNER_RADIUS_TERMINAL, node.getyPos() - Node.INNER_RADIUS_TERMINAL,
+				Node.INNER_RADIUS_TERMINAL * 2, Node.INNER_RADIUS_TERMINAL * 2);
+	}
+
+	/**
+	 * Creates a string centered in a rectangle shape
+	 * 
+	 * @param g    The graphics object to draw with
+	 * @param text The string to render
+	 * @param rect The rectangle to center the string in
+	 */
 	public void drawCenteredString(Graphics g, String text, Rectangle rect) {
 		// Get the FontMetrics
 		FontMetrics metrics = g.getFontMetrics();
@@ -541,6 +628,16 @@ public class GUI extends JPanel implements Serializable {
 		g.drawString(text, x, y);
 	}
 
+	/**
+	 * Draws a straight line connection
+	 * 
+	 * @param triggers The list of accepted strings for the connection
+	 * @param g2d      The graphics object to draw with
+	 * @param x1       The initial x coordinate of the line
+	 * @param y1       The initial y coordinate of the line
+	 * @param x2       The ending x coordinate of the line
+	 * @param y2       The ending y coordinate of the line
+	 */
 	public void drawConnection(Set<String> triggers, Graphics g2d, int x1, int y1, int x2, int y2) {
 
 		final int ARR_SIZE = 10;
@@ -576,6 +673,17 @@ public class GUI extends JPanel implements Serializable {
 		g.drawString(display.toString(), len / 2, 0);
 	}
 
+	/**
+	 * Like drawConnection, but creates an arced line for nodes that have a two-way
+	 * connection
+	 * 
+	 * @param triggers The list of accepted strings for the connection
+	 * @param g2d      The graphics object to draw with
+	 * @param x1       The initial x coordinate of the line
+	 * @param y1       The initial y coordinate of the line
+	 * @param x2       The ending x coordinate of the line
+	 * @param y2       The ending y coordinate of the line
+	 */
 	public void drawArcConnection(Set<String> triggers, Graphics g2d, int x1, int y1, int x2, int y2) {
 
 		final int ARR_SIZE = 10;
@@ -603,6 +711,15 @@ public class GUI extends JPanel implements Serializable {
 		g.drawString(display.toString(), len / 2, -ARC_HEIGHT);
 	}
 
+	/**
+	 * Creates a triangle representing the tip of an arrow for a connection
+	 * 
+	 * @param g2d The graphics object to draw with
+	 * @param x1  The initial x coordinate of the arrow
+	 * @param y1  The initial y coordinate of the arrow
+	 * @param x2  The ending x coordinate of the arrow
+	 * @param y2  The ending y coordinate of the arrow
+	 */
 	public void drawArrow(Graphics g2d, int x1, int y1, int x2, int y2) {
 		final int ARR_SIZE = 9;
 
@@ -621,6 +738,14 @@ public class GUI extends JPanel implements Serializable {
 				4);
 	}
 
+	/**
+	 * For drawing self-loops for a single node (Consists of an inwards-pointing
+	 * arrow from the bottom)
+	 * 
+	 * @param triggers List of accepted strings to draw
+	 * @param g2d      The graphics object to draw with
+	 * @param node     The node to draw the connection with
+	 */
 	public void drawLoopArrow(Set<String> triggers, Graphics g2d, Node node) {
 		drawConnection(triggers, g2d, node.getxPos(), node.getyPos() + Node.LOOP_ARROW_OFFSET, node.getxPos(),
 				node.getyPos());

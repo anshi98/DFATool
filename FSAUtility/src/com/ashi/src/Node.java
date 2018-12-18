@@ -129,19 +129,19 @@ public class Node extends JComponent implements Serializable {
 	}
 
 	/**
-	 * Uses only name and nodeState variables
+	 * Uses only name variable
 	 */
 	@Override
 	public boolean equals(Object other) {
 		Node otherNode = (Node) other;
-		return this.name.equals(otherNode.name) && this.nodeState.equals(otherNode.nodeState);
+		return this.name.equals(otherNode.name);
 	}
 
 	/**
-	 * Uses only name and nodeState variables
+	 * Uses only name variable
 	 */
 	@Override
 	public int hashCode() {
-		return name.hashCode() + nodeState.hashCode();
+		return name.hashCode();
 	}
 }

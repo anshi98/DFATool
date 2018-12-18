@@ -1,3 +1,8 @@
 TODO
 1. Add application settings
 2. If the user removes all triggers, remove the connection
+3. Make self-loops selectable in GUI
+4. Add back keyListener in GUI
+5. Modularize code in GUI
+*6. Finalize comments and code*
+7. Fix problem with connection drawing in GUI involving enums
