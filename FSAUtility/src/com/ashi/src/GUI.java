@@ -136,7 +136,6 @@ public class GUI extends JPanel implements Serializable {
 
 	public GUI() {
 		setFocusable(true);
-
 		addMouseListener(new CustomMouseListener());
 		addMouseMotionListener(new CustomMouseListener());
 		addKeyListener(new CustomKeyListener());
@@ -151,10 +150,12 @@ public class GUI extends JPanel implements Serializable {
 
 		@Override
 		public void keyPressed(KeyEvent arg0) {
-
 			if (arg0.getKeyCode() == KeyEvent.VK_DELETE) {
 
 				if (selectedNode != null) {
+					// User wants to delete node
+
+					// Remove all connections between other nodes and the node you want to delete
 					Iterator<Node> iter = nodes.iterator();
 					while (iter.hasNext()) {
 						Node currNode = iter.next();
@@ -162,19 +163,27 @@ public class GUI extends JPanel implements Serializable {
 						connections.remove(selectedNode);
 					}
 
+					// Remove the node itself
 					nodes.remove(selectedNode);
 
+					// Reset the selectedNode variable, as the node that was just selected is
+					// deleted
 					selectedNode = null;
-
 				} else if (selectedConnection != null) {
+					// User wants to delete connection
+
+					// Get the end nodes and use them to delete the connection
 					Node startingNode = selectedConnection.getStartNode();
 					Node endingNode = selectedConnection.getEndNode();
-
 					startingNode.getConnections().remove(endingNode);
 
+					// Reset the selectedConnection variable, as the selected connection was deleted
 					selectedConnection = null;
+				} else {
+					JOptionPane.showMessageDialog(null, "ERROR: No entity selected");
 				}
 
+				// Refresh the screen
 				repaint();
 			}
 		}

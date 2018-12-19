@@ -53,6 +53,8 @@ public class Main {
 		mainFrame.setVisible(true);
 		mainFrame.setLayout(new BorderLayout());
 		mainFrame.add(gui, BorderLayout.CENTER);
+		
+		gui.requestFocus();
 
 		initMenus();
 		initInputInterface();
