@@ -28,6 +28,7 @@ public class TestInputView extends JPanel {
 	JList<String> list;
 	DefaultListModel<String> dlm;
 	Node node;
+	JButton downButton;
 
 	public TestInputView(List<String> inputs, Node node) {
 		this.inputs = inputs;
@@ -38,18 +39,6 @@ public class TestInputView extends JPanel {
 		initList();
 
 		initControls();
-	}
-
-	/**
-	 * Creates control panel which contains button for testing automata with query
-	 * string
-	 */
-	private void initControls() {
-		JPanel controls = new JPanel();
-
-		controls.add(initTestButton());
-
-		add(controls, BorderLayout.CENTER);
 
 		// Set the testNode to the node with node state BEGINNING. There will always be
 		// a node with node state BEGINNING, since a TestInputView window won't be
@@ -60,6 +49,18 @@ public class TestInputView extends JPanel {
 				break;
 			}
 		}
+	}
+
+	/**
+	 * Creates control panel which contains button for testing automata with query
+	 * string
+	 */
+	private void initControls() {
+
+		// Create button
+		initTestButton();
+
+		add(downButton, BorderLayout.CENTER);
 
 		Main.gui.repaint();
 	}
@@ -74,8 +75,8 @@ public class TestInputView extends JPanel {
 	 * 
 	 * @return The test button
 	 */
-	private JButton initTestButton() {
-		JButton downButton = new JButton("Test");
+	private void initTestButton() {
+		downButton = new JButton("Test");
 		downButton.addActionListener(e -> {
 			// If program can't find self loop, carry on with checking rest of the nodes
 			if (!checkForSelfLoop()) {
@@ -86,8 +87,6 @@ public class TestInputView extends JPanel {
 			}
 
 		});
-
-		return downButton;
 	}
 
 	/**
@@ -100,27 +99,30 @@ public class TestInputView extends JPanel {
 			// "entry" contains a node connected to the current node, along with all strings
 			// that are accepted for that node. This for loop goes through all these
 			// connections
-			if (list.getSelectedIndex() != inputs.size() - 2) {
-				if (entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
-					// If not at the end of the query string and found a connection accepting the
-					// wanted query string segment, change the current node to the node accepting
-					// the segment
-					node = entry.getKey();
 
-					Main.gui.setTestNode(node);
-					Main.gui.repaint();
-					list.setSelectedIndex(list.getSelectedIndex() + 1);
-					return true;
+			if (entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
+				// If not at the end of the query string and found a connection accepting the
+				// wanted query string segment, change the current node to the node accepting
+				// the segment
+				node = entry.getKey();
+
+				Main.gui.setTestNode(node);
+				Main.gui.repaint();
+				list.setSelectedIndex(list.getSelectedIndex() + 1);
+
+				if (list.getSelectedIndex() == inputs.size() - 1) {
+					downButton.setEnabled(false);
+					if (Main.gui.getTestNode().getNodeState().equals(NodeState.TERMINAL)) {
+						// Testing ended on terminal node, and is therefore successful
+						JOptionPane.showMessageDialog(null, "Query string successful. Ended on terminal node.");
+					} else {
+						// Testing did not end on terminal, and is therefore unsuccessful
+						JOptionPane.showMessageDialog(null, "Query string unsuccessful. Did not end on terminal node.");
+					}
 				}
-			} else {
-				if (Main.gui.getTestNode().getNodeState().equals(NodeState.TERMINAL)) {
-					// Testing ended on terminal node, and is therefore successful
-					JOptionPane.showMessageDialog(null, "Query string successful. Ended on terminal node.");
-				} else {
-					// Testing did not end on terminal, and is therefore unsuccessful
-					JOptionPane.showMessageDialog(null, "Query string unsuccessful. Did not end on terminal node.");
-				}
+				return true;
 			}
+
 		}
 
 		return false;
@@ -132,10 +134,6 @@ public class TestInputView extends JPanel {
 	 * @return Whether a self-looping connection has been found
 	 */
 	private boolean checkForSelfLoop() {
-		System.out.println(list.getSelectedIndex());
-
-		System.out.println(inputs.size() - 2);
-		System.out.println(list.getSelectedIndex() != inputs.size() - 2);
 		// Due to the getConnections() being a set, it's possible that if a node has a
 		// connection to itself with accepted string X, along with connection to another
 		// node with the same accepted string X, it's possible for the connection with
@@ -143,27 +141,29 @@ public class TestInputView extends JPanel {
 		// program must check first whether there's a self-looping connection to test
 		// first
 		for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
-			if (list.getSelectedIndex() != inputs.size() - 1) {
-				if (node.equals(entry.getKey())
-						&& entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
-					// Found self looping node with the desired query string
 
-					Main.gui.setTestNode(node);
-					Main.gui.repaint();
-					list.setSelectedIndex(list.getSelectedIndex() + 1);
+			if (node.equals(entry.getKey())
+					&& entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
+				// Found self looping node with the desired query string
 
-					// No need to check for rest of nodes, so exit
-					return true;
+				Main.gui.setTestNode(node);
+				Main.gui.repaint();
+				list.setSelectedIndex(list.getSelectedIndex() + 1);
+
+				if (list.getSelectedIndex() == inputs.size() - 1) {
+					downButton.setEnabled(false);
+					if (Main.gui.getTestNode().getNodeState().equals(NodeState.TERMINAL)) {
+						// Testing ended on terminal node, and is therefore successful
+						JOptionPane.showMessageDialog(null, "Query string successful. Ended on terminal node.");
+					} else {
+						// Testing did not end on terminal, and is therefore unsuccessful
+						JOptionPane.showMessageDialog(null, "Query string unsuccessful. Did not end on terminal node.");
+					}
+
 				}
-			} else {
-				System.out.println("EE");
-				if (Main.gui.getTestNode().getNodeState().equals(NodeState.TERMINAL)) {
-					// Testing ended on terminal node, and is therefore successful
-					JOptionPane.showMessageDialog(null, "Query string successful. Ended on terminal node.");
-				} else {
-					// Testing did not end on terminal, and is therefore unsuccessful
-					JOptionPane.showMessageDialog(null, "Query string unsuccessful. Did not end on terminal node.");
-				}
+
+				// No need to check for rest of nodes, so exit
+				return true;
 			}
 		}
 

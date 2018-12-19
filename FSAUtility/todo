@@ -10,3 +10,4 @@ TODO
 12. Fix array OOB for testing window
 13. Fix weird jumping with keywords on a connection
 15. Change default file location of prompter when opening a serial
+16. Draw keywords with underline to indicate sidedness
