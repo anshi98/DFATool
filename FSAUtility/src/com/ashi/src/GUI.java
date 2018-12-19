@@ -158,31 +158,10 @@ public class GUI extends JPanel implements Serializable {
 
 				if (selectedNode != null) {
 					// User wants to delete node
-
-					// Remove all connections between other nodes and the node you want to delete
-					Iterator<Node> iter = nodes.iterator();
-					while (iter.hasNext()) {
-						Node currNode = iter.next();
-						Map<Node, Set<String>> connections = currNode.getConnections();
-						connections.remove(selectedNode);
-					}
-
-					// Remove the node itself
-					nodes.remove(selectedNode);
-
-					// Reset the selectedNode variable, as the node that was just selected is
-					// deleted
-					selectedNode = null;
+					removeCurrentNode();
 				} else if (selectedConnection != null) {
 					// User wants to delete connection
-
-					// Get the end nodes and use them to delete the connection
-					Node startingNode = selectedConnection.getStartNode();
-					Node endingNode = selectedConnection.getEndNode();
-					startingNode.getConnections().remove(endingNode);
-
-					// Reset the selectedConnection variable, as the selected connection was deleted
-					selectedConnection = null;
+					removeCurrentConnection();
 				} else {
 					JOptionPane.showMessageDialog(null, "ERROR: No entity selected");
 				}
@@ -201,6 +180,39 @@ public class GUI extends JPanel implements Serializable {
 
 		}
 
+	}
+
+	/**
+	 * Remove the currently selected connection in the GUI
+	 */
+	private void removeCurrentConnection() {
+		// Get the end nodes and use them to delete the connection
+		Node startingNode = selectedConnection.getStartNode();
+		Node endingNode = selectedConnection.getEndNode();
+		startingNode.getConnections().remove(endingNode);
+
+		// Reset the selectedConnection variable, as the selected connection was deleted
+		selectedConnection = null;
+	}
+
+	/**
+	 * Remove the currently selected node in the GUI
+	 */
+	private void removeCurrentNode() {
+		// Remove all connections between other nodes and the node you want to delete
+		Iterator<Node> iter = nodes.iterator();
+		while (iter.hasNext()) {
+			Node currNode = iter.next();
+			Map<Node, Set<String>> connections = currNode.getConnections();
+			connections.remove(selectedNode);
+		}
+
+		// Remove the node itself
+		nodes.remove(selectedNode);
+
+		// Reset the selectedNode variable, as the node that was just selected is
+		// deleted
+		selectedNode = null;
 	}
 
 	private class CustomMouseListener extends MouseAdapter implements MouseMotionListener {
@@ -491,72 +503,8 @@ public class GUI extends JPanel implements Serializable {
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		/*
-		 * if (currConnection != null) { g2d.draw(currConnection); }
-		 */
-
 		for (Node node : nodes) {
-			if (node.getNodeState() == NodeState.TERMINAL) {
-				// Terminal node, so the program must render two circles
-
-				if (selectedNode != null && node.equals(selectedNode)) {
-					// Colored blue since selected
-					g2d.setColor(Color.BLUE);
-					drawTerminalNode(g2d, node);
-				} else if (beginningNode != null && node.equals(beginningNode)) {
-					// Colored green since beginning node
-					g2d.setColor(Color.GREEN);
-					drawTerminalNode(g2d, node);
-				} else if (testNode != null && node.equals(testNode)) {
-					// Colored red since test node
-					g2d.setColor(Color.RED);
-					drawTerminalNode(g2d, node);
-				} else {
-					// Simply draw without color
-					drawTerminalNode(g2d, node);
-				}
-			}
-
-			if (node.getNodeState() == NodeState.BEGINNING) {
-				// Beginning node, so the program must render the inwards pointing arrow
-				if (selectedNode != null && node.equals(selectedNode)) {
-					// Colored blue since selected
-					g2d.setColor(Color.BLUE);
-					drawBeginningNode(g2d, node);
-				} else if (beginningNode != null && node.equals(beginningNode)) {
-					// Colored green since beginning node
-					g2d.setColor(Color.GREEN);
-					drawBeginningNode(g2d, node);
-				} else if (testNode != null && node.equals(testNode)) {
-					// Colored red since test node
-					g2d.setColor(Color.RED);
-					drawBeginningNode(g2d, node);
-				} else {
-					// Simply draw without color
-					drawBeginningNode(g2d, node);
-				}
-
-			}
-
-			if (node.getNodeState() == NodeState.REGULAR) {
-				// Regular node, so just draw normally
-				if (selectedNode != null && node.equals(selectedNode)) {
-					// Colored blue since selected
-					g2d.setColor(Color.BLUE);
-					drawRegularNode(g2d, node);
-				} else if (beginningNode != null && node.equals(beginningNode)) {
-					// Colored green since beginning
-					g2d.setColor(Color.GREEN);
-					drawRegularNode(g2d, node);
-				} else if (testNode != null && node.equals(testNode)) {
-					// Colored red since test node
-					g2d.setColor(Color.RED);
-					drawRegularNode(g2d, node);
-				} else {
-					// Simply draw without color
-					drawRegularNode(g2d, node);
-				}
-			}
+			drawNode(g2d, node);
 
 			// Draw node name
 			drawNodeName(g2d, node);
@@ -564,45 +512,124 @@ public class GUI extends JPanel implements Serializable {
 			// Reset color back to default
 			g2d.setColor(Color.BLACK);
 
-			// Draw connections
-			for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
-				Node adj = entry.getKey();
-				Set<String> triggers = entry.getValue();
+			drawConnectionsForNode(g2d, node);
 
-				// Current connection is selected, so draw it in blue
-				if (selectedConnection != null && selectedConnection.getStartNode().equals(node)
-						&& selectedConnection.getEndNode().equals(adj)) {
-					g2d.setColor(Color.BLUE);
-					if (selectedConnection.getStartNode().equals(selectedConnection.getEndNode())) {
-						// Beginning and end nodes are the same, so draw self loop
-						drawLoopArrow(triggers, g2d, node);
-					} else if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
-						// Beginning and end nodes are connected both ways, so must draw arc
-						drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
-					} else {
-						// Draw line since it's only a one way connection
-						drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
-					}
+			// Reset color back to default
+			g2d.setColor(Color.BLACK);
+		}
+
+	}
+
+	/**
+	 * Draws all connections for a given node
+	 * 
+	 * @param g2d  The graphics object to draw with
+	 * @param node The node to draw the connections of
+	 */
+	private void drawConnectionsForNode(Graphics2D g2d, Node node) {
+		// Draw connections
+		for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
+			Node adj = entry.getKey();
+			Set<String> triggers = entry.getValue();
+
+			// Current connection is selected, so draw it in blue
+			if (selectedConnection != null && selectedConnection.getStartNode().equals(node)
+					&& selectedConnection.getEndNode().equals(adj)) {
+				g2d.setColor(Color.BLUE);
+				if (selectedConnection.getStartNode().equals(selectedConnection.getEndNode())) {
+					// Beginning and end nodes are the same, so draw self loop
+					drawLoopArrow(triggers, g2d, node);
+				} else if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
+					// Beginning and end nodes are connected both ways, so must draw arc
+					drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+				} else {
+					// Draw line since it's only a one way connection
+					drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
 				}
-
-				else {
-					// Connection not selected
-					if (entry.getKey().equals(node)) {
-						// Connection has end points as the same nodes, hence connection is self looping
-						drawLoopArrow(triggers, g2d, node);
-					} else if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
-						// Connection contains 2 nodes connected to each other, hence you draw an arc
-						drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
-					} else {
-						// Connection contains one way connection between nodes, hence a simple arrow
-						drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
-					}
-
-				}
-				// Reset color back to default
-				g2d.setColor(Color.BLACK);
 			}
 
+			else {
+				// Connection not selected
+				if (entry.getKey().equals(node)) {
+					// Connection has end points as the same nodes, hence connection is self looping
+					drawLoopArrow(triggers, g2d, node);
+				} else if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
+					// Connection contains 2 nodes connected to each other, hence you draw an arc
+					drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+				} else {
+					// Connection contains one way connection between nodes, hence a simple arrow
+					drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+				}
+			}
+		}
+	}
+
+	/**
+	 * Draws a node based on its node state
+	 * 
+	 * @param g2d  The graphics object to draw with
+	 * @param node The node to draw
+	 */
+	private void drawNode(Graphics2D g2d, Node node) {
+		switch (node.getNodeState()) {
+		case TERMINAL: {
+			// Terminal node, so the program must render two circles
+
+			if (selectedNode != null && node.equals(selectedNode)) {
+				// Colored blue since selected
+				g2d.setColor(Color.BLUE);
+				drawTerminalNode(g2d, node);
+			} else if (beginningNode != null && node.equals(beginningNode)) {
+				// Colored green since beginning node
+				g2d.setColor(Color.GREEN);
+				drawTerminalNode(g2d, node);
+			} else if (testNode != null && node.equals(testNode)) {
+				// Colored red since test node
+				g2d.setColor(Color.RED);
+				drawTerminalNode(g2d, node);
+			} else {
+				// Simply draw without color
+				drawTerminalNode(g2d, node);
+			}
+		}
+		case BEGINNING: {
+			// Beginning node, so the program must render the inwards pointing arrow
+			if (selectedNode != null && node.equals(selectedNode)) {
+				// Colored blue since selected
+				g2d.setColor(Color.BLUE);
+				drawBeginningNode(g2d, node);
+			} else if (beginningNode != null && node.equals(beginningNode)) {
+				// Colored green since beginning node
+				g2d.setColor(Color.GREEN);
+				drawBeginningNode(g2d, node);
+			} else if (testNode != null && node.equals(testNode)) {
+				// Colored red since test node
+				g2d.setColor(Color.RED);
+				drawBeginningNode(g2d, node);
+			} else {
+				// Simply draw without color
+				drawBeginningNode(g2d, node);
+			}
+		}
+		case REGULAR: {
+			// Regular node, so just draw normally
+			if (selectedNode != null && node.equals(selectedNode)) {
+				// Colored blue since selected
+				g2d.setColor(Color.BLUE);
+				drawRegularNode(g2d, node);
+			} else if (beginningNode != null && node.equals(beginningNode)) {
+				// Colored green since beginning
+				g2d.setColor(Color.GREEN);
+				drawRegularNode(g2d, node);
+			} else if (testNode != null && node.equals(testNode)) {
+				// Colored red since test node
+				g2d.setColor(Color.RED);
+				drawRegularNode(g2d, node);
+			} else {
+				// Simply draw without color
+				drawRegularNode(g2d, node);
+			}
+		}
 		}
 	}
 

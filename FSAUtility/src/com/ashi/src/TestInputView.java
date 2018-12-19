@@ -110,22 +110,29 @@ public class TestInputView extends JPanel {
 				Main.gui.repaint();
 				list.setSelectedIndex(list.getSelectedIndex() + 1);
 
-				if (list.getSelectedIndex() == inputs.size() - 1) {
-					downButton.setEnabled(false);
-					if (Main.gui.getTestNode().getNodeState().equals(NodeState.TERMINAL)) {
-						// Testing ended on terminal node, and is therefore successful
-						JOptionPane.showMessageDialog(null, "Query string successful. Ended on terminal node.");
-					} else {
-						// Testing did not end on terminal, and is therefore unsuccessful
-						JOptionPane.showMessageDialog(null, "Query string unsuccessful. Did not end on terminal node.");
-					}
-				}
+				endingCheck();
 				return true;
 			}
 
 		}
 
 		return false;
+	}
+
+	/**
+	 * See if the testing ended on a terminal node
+	 */
+	private void endingCheck() {
+		if (list.getSelectedIndex() == inputs.size() - 1) {
+			downButton.setEnabled(false);
+			if (Main.gui.getTestNode().getNodeState().equals(NodeState.TERMINAL)) {
+				// Testing ended on terminal node, and is therefore successful
+				JOptionPane.showMessageDialog(null, "Query string successful. Ended on terminal node.");
+			} else {
+				// Testing did not end on terminal, and is therefore unsuccessful
+				JOptionPane.showMessageDialog(null, "Query string unsuccessful. Did not end on terminal node.");
+			}
+		}
 	}
 
 	/**
@@ -150,17 +157,7 @@ public class TestInputView extends JPanel {
 				Main.gui.repaint();
 				list.setSelectedIndex(list.getSelectedIndex() + 1);
 
-				if (list.getSelectedIndex() == inputs.size() - 1) {
-					downButton.setEnabled(false);
-					if (Main.gui.getTestNode().getNodeState().equals(NodeState.TERMINAL)) {
-						// Testing ended on terminal node, and is therefore successful
-						JOptionPane.showMessageDialog(null, "Query string successful. Ended on terminal node.");
-					} else {
-						// Testing did not end on terminal, and is therefore unsuccessful
-						JOptionPane.showMessageDialog(null, "Query string unsuccessful. Did not end on terminal node.");
-					}
-
-				}
+				endingCheck();
 
 				// No need to check for rest of nodes, so exit
 				return true;
