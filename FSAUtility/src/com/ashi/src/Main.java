@@ -363,11 +363,12 @@ public class Main {
 					ObjectInputStream in = new ObjectInputStream(fileIn);
 
 					GUI newGui = (GUI) in.readObject();
-
 					gui.setNodes(newGui.getNodes());
 					gui.setSelectedNode(newGui.getSelectedNode());
 					gui.setBeginningNode(newGui.getBeginningNode());
-
+					gui.setSelectedConnection(newGui.getSelectedConnection());
+					gui.setCurrConnection(newGui.getCurrConnection());
+					gui.setNodeIndex(newGui.getNodeIndex());
 					gui.repaint();
 
 					in.close();

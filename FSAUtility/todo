@@ -8,3 +8,5 @@ TODO
 7. Fix problem with connection drawing in GUI involving enums
 8. Describe the code in the code itself and not in the JavaDocs
 9. Put comments above line of code and not at the bottom
+10. Update README
+11. Fix arrow head

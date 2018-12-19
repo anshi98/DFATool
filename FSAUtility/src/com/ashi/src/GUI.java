@@ -63,6 +63,22 @@ public class GUI extends JPanel implements Serializable {
 		this.nodes = nodes;
 	}
 
+	public Shape getCurrConnection() {
+		return currConnection;
+	}
+
+	public void setCurrConnection(Shape currConnection) {
+		this.currConnection = currConnection;
+	}
+
+	public int getNodeIndex() {
+		return nodeIndex;
+	}
+
+	public void setNodeIndex(int nodeIndex) {
+		this.nodeIndex = nodeIndex;
+	}
+
 	public Node getSelectedNode() {
 		return selectedNode;
 	}
@@ -562,10 +578,10 @@ public class GUI extends JPanel implements Serializable {
 					}
 
 				}
-
+				// Reset color back to default
+				g2d.setColor(Color.BLACK);
 			}
-			// Reset color back to default
-			g2d.setColor(Color.BLACK);
+
 		}
 	}
 
