@@ -308,6 +308,14 @@ public class Main {
 		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
+				// Check if connection has no more triggers
+
+				Connection selectedConnection = gui.getSelectedConnection();
+				if (selectedConnection.getTriggers().isEmpty()) {
+					// No more accepted keywords, so remove the connection
+					selectedConnection.getStartNode().getConnections().remove(selectedConnection.getEndNode());
+					gui.repaint();
+				}
 				mainFrame.setEnabled(true);
 			}
 
