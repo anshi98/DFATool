@@ -233,14 +233,6 @@ public class GUI extends JPanel implements Serializable {
 						 * up-pointing line for self-looping connections (To be added))
 						 */
 
-						/*
-						 * if (node.equals(adj)) { // Self connection currConnection = new
-						 * Line2D.Double(node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
-						 * } else {
-						 */
-
-						// TODO detect click on self-looping connections
-
 						Shape currConnection = null;
 						if (node.equals(adj)) {
 							// This connection is a self-looping connection
@@ -402,15 +394,36 @@ public class GUI extends JPanel implements Serializable {
 		return false;
 	}
 
+	/**
+	 * Creates a straight line connection shape from a one-way connection between
+	 * two nodes
+	 * 
+	 * @param adj  The adjacent node
+	 * @param node The original node
+	 * @return The connection line shape
+	 */
 	public Shape createSimpleLine(Node adj, Node node) {
 		return new Line2D.Double(node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
 	}
 
+	/**
+	 * Creates an inwards pointing arrow from a self-looping connection
+	 * 
+	 * @param node The node of the self-connection
+	 * @return The connection line shape
+	 */
 	public Shape createSelfLoopLine(Node node) {
 		return new Line2D.Double(node.getxPos(), node.getyPos() + Node.LOOP_ARROW_OFFSET, node.getxPos(),
 				node.getyPos());
 	}
 
+	/**
+	 * Creates a rounded line for a two-way connection between two nodes
+	 * 
+	 * @param adj
+	 * @param currNode
+	 * @return
+	 */
 	public Shape createRoundedLine(Node adj, Node currNode) {
 		double dx = adj.getxPos() - currNode.getxPos(), dy = adj.getyPos() - currNode.getyPos();
 		double angle = Math.atan2(dy, dx);
