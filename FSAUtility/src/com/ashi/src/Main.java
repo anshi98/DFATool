@@ -380,6 +380,7 @@ public class Main {
 					gui.setBeginningNode(newGui.getBeginningNode());
 					gui.setSelectedConnection(newGui.getSelectedConnection());
 					gui.setNodeIndex(newGui.getNodeIndex());
+					gui.setTestNode(newGui.getTestNode());
 					gui.repaint();
 
 					in.close();

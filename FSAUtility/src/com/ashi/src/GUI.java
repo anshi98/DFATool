@@ -45,6 +45,8 @@ public class GUI extends JPanel implements Serializable {
 	private static final int ARC_HEIGHT = 60; // Two nodes that connect to each other will need to have their
 												// connection lines arced so you can distinguish between them
 	private static final int NODE_NAME_HEIGHT_OFFSET = 70; // Height to offset name of node by
+	private static final int KEYWORDS_LINE_OFFSET = 30; // The amount of space to offset the keywords of a connection
+														// by its connection line
 	private List<Node> nodes;
 	private Node selectedNode;
 	private Node beginningNode; // If you want to create a connection between nodes, the program will see if you
@@ -52,7 +54,7 @@ public class GUI extends JPanel implements Serializable {
 								// this variable. If not, the program will just select a node like normal
 	private Connection selectedConnection;
 	private int nodeIndex = 0; // Used to give default names to the nodes based on their index
-	private Node testNode = null; // Used to highlight the node you're currently on in query string testing
+	private Node testNode; // Used to highlight the node you're currently on in query string testing
 
 	private int screenX, screenY, panelX, panelY;
 
@@ -714,7 +716,7 @@ public class GUI extends JPanel implements Serializable {
 		AttributedString stylized = new AttributedString(display.toString());
 		stylized.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON, 0, display.toString().length() - 1);
 
-		g.drawString(stylized.getIterator(), len / 2, -20);
+		g.drawString(stylized.getIterator(), len / 2, -KEYWORDS_LINE_OFFSET);
 	}
 
 	/**
@@ -755,7 +757,7 @@ public class GUI extends JPanel implements Serializable {
 		AttributedString stylized = new AttributedString(display.toString());
 		stylized.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON, 0, display.toString().length() - 1);
 
-		g.drawString(stylized.getIterator(), len / 2, -ARC_HEIGHT);
+		g.drawString(stylized.getIterator(), len / 2, -ARC_HEIGHT - KEYWORDS_LINE_OFFSET);
 	}
 
 	/**
