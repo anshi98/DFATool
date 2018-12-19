@@ -7,6 +7,6 @@ TODO
 9. Put comments above line of code and not at the bottom
 10. Update README
 11. Fix arrow head
-13. Fix weird jumping with keywords on a connection
-15. Change default file location of prompter when opening a serial
-16. Draw keywords with underline to indicate sidedness
+17. Fix serialization bug
+18. Remove sysout calls
+19. Get rid of arcs

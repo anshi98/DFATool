@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -53,7 +54,7 @@ public class Main {
 		mainFrame.setVisible(true);
 		mainFrame.setLayout(new BorderLayout());
 		mainFrame.add(gui, BorderLayout.CENTER);
-		
+
 		gui.requestFocus();
 
 		initMenus();
@@ -364,6 +365,7 @@ public class Main {
 		JMenuItem toReturn = new JMenuItem("Read in state");
 		toReturn.addActionListener(e -> {
 			JFileChooser chooser = new JFileChooser("Select State File");
+			chooser.setCurrentDirectory(new File("./serials/"));
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("SER Files", "ser");
 			chooser.setFileFilter(filter);
 			chooser.showOpenDialog(null);

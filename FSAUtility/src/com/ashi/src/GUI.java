@@ -12,10 +12,12 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Line2D;
 import java.io.Serializable;
+import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -569,8 +571,7 @@ public class GUI extends JPanel implements Serializable {
 
 				System.out.println("Curr: " + node);
 				System.out.println("Adj: " + adj);
-				
-				
+
 				// Current connection is selected, so draw it in blue
 				if (selectedConnection != null && selectedConnection.getStartNode().equals(node)
 						&& selectedConnection.getEndNode().equals(adj)) {
@@ -710,7 +711,10 @@ public class GUI extends JPanel implements Serializable {
 			display.append(trigger + " ");
 		}
 
-		g.drawString(display.toString(), len / 2, 0);
+		AttributedString stylized = new AttributedString(display.toString());
+		stylized.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON, 0, display.toString().length() - 1);
+
+		g.drawString(stylized.getIterator(), len / 2, -20);
 	}
 
 	/**
@@ -748,7 +752,10 @@ public class GUI extends JPanel implements Serializable {
 			display.append(trigger + " ");
 		}
 
-		g.drawString(display.toString(), len / 2, -ARC_HEIGHT);
+		AttributedString stylized = new AttributedString(display.toString());
+		stylized.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON, 0, display.toString().length() - 1);
+
+		g.drawString(stylized.getIterator(), len / 2, -ARC_HEIGHT);
 	}
 
 	/**
