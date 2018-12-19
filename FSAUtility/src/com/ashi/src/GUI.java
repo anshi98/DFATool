@@ -567,6 +567,10 @@ public class GUI extends JPanel implements Serializable {
 				Node adj = entry.getKey();
 				Set<String> triggers = entry.getValue();
 
+				System.out.println("Curr: " + node);
+				System.out.println("Adj: " + adj);
+				
+				
 				// Current connection is selected, so draw it in blue
 				if (selectedConnection != null && selectedConnection.getStartNode().equals(node)
 						&& selectedConnection.getEndNode().equals(adj)) {
@@ -586,12 +590,15 @@ public class GUI extends JPanel implements Serializable {
 				else {
 					// Connection not selected
 					if (entry.getKey().equals(node)) {
+						System.out.println(1);
 						// Connection has end points as the same nodes, hence connection is self looping
 						drawLoopArrow(triggers, g2d, node);
 					} else if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
+						System.out.println(2);
 						// Connection contains 2 nodes connected to each other, hence you draw an arc
 						drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
 					} else {
+						System.out.println(3);
 						// Connection contains one way connection between nodes, hence a simple arrow
 						drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
 					}
@@ -696,14 +703,6 @@ public class GUI extends JPanel implements Serializable {
 
 		g.fillPolygon(new int[] { len, len - ARR_SIZE, len - ARR_SIZE, len }, new int[] { 0, -ARR_SIZE, ARR_SIZE, 0 },
 				4);
-
-		if (dx < 0) {
-
-			AffineTransform text = AffineTransform.getTranslateInstance(x2, y2);
-			text.concatenate(AffineTransform.getRotateInstance(angle + Math.PI));
-			g.setTransform(text);
-
-		}
 
 		StringBuilder display = new StringBuilder();
 
