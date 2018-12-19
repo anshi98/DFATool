@@ -49,7 +49,6 @@ public class GUI extends JPanel implements Serializable {
 								// selected a initial node that will hold the connection, which is stored in
 								// this variable. If not, the program will just select a node like normal
 	private Connection selectedConnection;
-	private Shape currConnection = null;
 	private int nodeIndex = 0; // Used to give default names to the nodes based on their index
 	private Node testNode = null; // Used to highlight the node you're currently on in query string testing
 
@@ -61,14 +60,6 @@ public class GUI extends JPanel implements Serializable {
 
 	public void setNodes(List<Node> nodes) {
 		this.nodes = nodes;
-	}
-
-	public Shape getCurrConnection() {
-		return currConnection;
-	}
-
-	public void setCurrConnection(Shape currConnection) {
-		this.currConnection = currConnection;
 	}
 
 	public int getNodeIndex() {
@@ -148,7 +139,7 @@ public class GUI extends JPanel implements Serializable {
 
 		addMouseListener(new CustomMouseListener());
 		addMouseMotionListener(new CustomMouseListener());
-		// addKeyListener(new CustomKeyListener());
+		addKeyListener(new CustomKeyListener());
 
 		nodes = new ArrayList<>();
 
@@ -156,39 +147,48 @@ public class GUI extends JPanel implements Serializable {
 
 	}
 
-	/*
-	 * private class CustomKeyListener implements KeyListener {
-	 * 
-	 * @Override public void keyPressed(KeyEvent arg0) {
-	 * 
-	 * if (arg0.getKeyCode() == KeyEvent.VK_DELETE) {
-	 * 
-	 * if (selectedNode != null) { Iterator<Node> iter = nodes.iterator(); while
-	 * (iter.hasNext()) { Node currNode = iter.next(); Map<Node, Set<String>>
-	 * connections = currNode.getConnections(); connections.remove(selectedNode); }
-	 * 
-	 * nodes.remove(selectedNode);
-	 * 
-	 * selectedNode = null;
-	 * 
-	 * } else if (selectedConnection != null) { Node startingNode =
-	 * selectedConnection.getStartNode(); Node endingNode =
-	 * selectedConnection.getEndNode();
-	 * 
-	 * startingNode.getConnections().remove(endingNode);
-	 * 
-	 * selectedConnection = null; }
-	 * 
-	 * repaint(); } }
-	 * 
-	 * @Override public void keyReleased(KeyEvent arg0) { }
-	 * 
-	 * @Override public void keyTyped(KeyEvent arg0) {
-	 * 
-	 * }
-	 * 
-	 * }
-	 */
+	private class CustomKeyListener implements KeyListener {
+
+		@Override
+		public void keyPressed(KeyEvent arg0) {
+
+			if (arg0.getKeyCode() == KeyEvent.VK_DELETE) {
+
+				if (selectedNode != null) {
+					Iterator<Node> iter = nodes.iterator();
+					while (iter.hasNext()) {
+						Node currNode = iter.next();
+						Map<Node, Set<String>> connections = currNode.getConnections();
+						connections.remove(selectedNode);
+					}
+
+					nodes.remove(selectedNode);
+
+					selectedNode = null;
+
+				} else if (selectedConnection != null) {
+					Node startingNode = selectedConnection.getStartNode();
+					Node endingNode = selectedConnection.getEndNode();
+
+					startingNode.getConnections().remove(endingNode);
+
+					selectedConnection = null;
+				}
+
+				repaint();
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent arg0) {
+		}
+
+		@Override
+		public void keyTyped(KeyEvent arg0) {
+
+		}
+
+	}
 
 	private class CustomMouseListener extends MouseAdapter implements MouseMotionListener {
 		public void mousePressed(MouseEvent me) {
@@ -196,6 +196,7 @@ public class GUI extends JPanel implements Serializable {
 			// Left click
 			// Check to see if node was clicked
 			if (me.getButton() == MouseEvent.BUTTON1) {
+
 				for (Node node : nodes) {
 
 					if (node.clickedOn(me.getX(), me.getY())) {
@@ -219,6 +220,8 @@ public class GUI extends JPanel implements Serializable {
 				for (Node node : nodes) {
 
 					for (Node adj : node.getConnections().keySet()) {
+						System.out.println(node);
+						System.out.println(adj);
 						// Adj is the opposite node to all connections the current node has. So this
 						// loop is going through all connections, seeing if one has been clicked on
 
@@ -238,20 +241,22 @@ public class GUI extends JPanel implements Serializable {
 
 						// TODO detect click on self-looping connections
 
-						if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
+						Shape currConnection = null;
+						if (node.equals(adj)) {
+							// This connection is a self-looping connection
+							currConnection = createSelfLoopLine(node);
+						} else if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
 							// This connection contains 2 distinct nodes connected to each other
-
-							createRoundedLine(adj, node);
+							currConnection = createRoundedLine(adj, node);
 						} else {
 							// This connection is a one way connection between 2 distinct nodes
-							createSimpleLine(adj, node);
-
+							currConnection = createSimpleLine(adj, node);
 						}
 
 						// }
 
 						// Check if ***currently assigned*** connection line has been clicked
-						if (checkForConnectionClick(me, adj, node)) {
+						if (checkForConnectionClick(me, adj, node, currConnection)) {
 							// Connection has been clicked so exit out and prevent variables from being
 							// reset
 							return;
@@ -331,7 +336,6 @@ public class GUI extends JPanel implements Serializable {
 		panelY = me.getY();
 
 		// Reset node variables besides selectedNode
-		currConnection = null;
 		beginningNode = null;
 		selectedConnection = null;
 
@@ -367,7 +371,6 @@ public class GUI extends JPanel implements Serializable {
 	 */
 	private void resetVariables() {
 		selectedNode = null;
-		currConnection = null;
 		beginningNode = null;
 		selectedConnection = null;
 	}
@@ -381,7 +384,7 @@ public class GUI extends JPanel implements Serializable {
 	 * @param currNode The original node of the connection
 	 * @return Whether the curve has been clicked
 	 */
-	public boolean checkForConnectionClick(MouseEvent me, Node adj, Node currNode) {
+	public boolean checkForConnectionClick(MouseEvent me, Node adj, Node currNode, Shape currConnection) {
 		Rectangle clickbox = new Rectangle(me.getX() - CLICKBOX, me.getY() - CLICKBOX, CLICKBOX * 2, CLICKBOX * 2);
 
 		if (currConnection.intersects(clickbox)) {
@@ -399,33 +402,27 @@ public class GUI extends JPanel implements Serializable {
 		return false;
 	}
 
-	/**
-	 * Creates a curve object (Straight line) from a one-way connection
-	 * 
-	 * @param adj  Adjacent node of the connection
-	 * @param node Original node of the connection
-	 */
-	public void createSimpleLine(Node adj, Node node) {
-		currConnection = new Line2D.Double(node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
+	public Shape createSimpleLine(Node adj, Node node) {
+		return new Line2D.Double(node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
 	}
 
-	/**
-	 * Creates a curve object (Rounded curve) from a pair of nodes that are
-	 * connected to each other
-	 * 
-	 * @param adj      Adjacent node of the connection
-	 * @param currNode Original node of the connection
-	 */
-	public void createRoundedLine(Node adj, Node currNode) {
+	public Shape createSelfLoopLine(Node node) {
+		return new Line2D.Double(node.getxPos(), node.getyPos() + Node.LOOP_ARROW_OFFSET, node.getxPos(),
+				node.getyPos());
+	}
+
+	public Shape createRoundedLine(Node adj, Node currNode) {
 		double dx = adj.getxPos() - currNode.getxPos(), dy = adj.getyPos() - currNode.getyPos();
 		double angle = Math.atan2(dy, dx);
 		int len = (int) Math.sqrt(dx * dx + dy * dy);
 		AffineTransform at = AffineTransform.getTranslateInstance(currNode.getxPos(), currNode.getyPos());
 		at.concatenate(AffineTransform.getRotateInstance(angle));
 
-		currConnection = new Arc2D.Double(0, 0 - ARC_HEIGHT / 2, len, ARC_HEIGHT, 0, 180, Arc2D.CHORD);
+		Shape currConnection = new Arc2D.Double(0, 0 - ARC_HEIGHT / 2, len, ARC_HEIGHT, 0, 180, Arc2D.CHORD);
 
 		currConnection = at.createTransformedShape(currConnection);
+
+		return currConnection;
 	}
 
 	/**

@@ -367,7 +367,6 @@ public class Main {
 					gui.setSelectedNode(newGui.getSelectedNode());
 					gui.setBeginningNode(newGui.getBeginningNode());
 					gui.setSelectedConnection(newGui.getSelectedConnection());
-					gui.setCurrConnection(newGui.getCurrConnection());
 					gui.setNodeIndex(newGui.getNodeIndex());
 					gui.repaint();
 

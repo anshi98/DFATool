@@ -1,7 +1,6 @@
 TODO
 1. Add application settings
 2. If the user removes all triggers, remove the connection
-3. Make self-loops selectable in GUI
 4. Add back keyListener in GUI
 5. Modularize code in GUI
 *6. Finalize comments and code*
@@ -10,3 +9,4 @@ TODO
 9. Put comments above line of code and not at the bottom
 10. Update README
 11. Fix arrow head
+12. Fix array OOB for testing window
