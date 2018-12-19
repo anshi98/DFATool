@@ -233,8 +233,6 @@ public class GUI extends JPanel implements Serializable {
 				for (Node node : nodes) {
 
 					for (Node adj : node.getConnections().keySet()) {
-						System.out.println(node);
-						System.out.println(adj);
 						// Adj is the opposite node to all connections the current node has. So this
 						// loop is going through all connections, seeing if one has been clicked on
 
@@ -571,9 +569,6 @@ public class GUI extends JPanel implements Serializable {
 				Node adj = entry.getKey();
 				Set<String> triggers = entry.getValue();
 
-				System.out.println("Curr: " + node);
-				System.out.println("Adj: " + adj);
-
 				// Current connection is selected, so draw it in blue
 				if (selectedConnection != null && selectedConnection.getStartNode().equals(node)
 						&& selectedConnection.getEndNode().equals(adj)) {
@@ -593,15 +588,12 @@ public class GUI extends JPanel implements Serializable {
 				else {
 					// Connection not selected
 					if (entry.getKey().equals(node)) {
-						System.out.println(1);
 						// Connection has end points as the same nodes, hence connection is self looping
 						drawLoopArrow(triggers, g2d, node);
 					} else if (node.getConnections().containsKey(adj) && adj.getConnections().containsKey(node)) {
-						System.out.println(2);
 						// Connection contains 2 nodes connected to each other, hence you draw an arc
 						drawArcConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
 					} else {
-						System.out.println(3);
 						// Connection contains one way connection between nodes, hence a simple arrow
 						drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
 					}
