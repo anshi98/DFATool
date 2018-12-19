@@ -422,21 +422,27 @@ public class GUI extends JPanel implements Serializable {
 		String trigger = JOptionPane.showInputDialog(null, "Enter accepted string");
 
 		if (trigger != null) {
-			// Trigger cannot contain spaces, due to spaces used to separate triggers
-			if (!trigger.contains(" ")) {
+			// User clicked on cancel
+			if (!trigger.equals("")) {
+				// Trigger can't be empty string
+				if (!trigger.contains(" ")) {
+					// Trigger cannot contain spaces, due to spaces being used to separate triggers
 
-				// Add a connection to the current node with the specified trigger to the other
-				// node
-				beginningNode.addNode(otherNode, trigger);
+					// Add a connection to the current node with the specified trigger to the other
+					// node
+					beginningNode.addNode(otherNode, trigger);
 
-				// Reset variables due to a connection just being created
-				resetVariables();
+					// Reset variables due to a connection just being created
+					resetVariables();
 
-				// Refresh the GUI
-				repaint();
-				return;
+					// Refresh the GUI
+					repaint();
+					return;
+				} else {
+					JOptionPane.showMessageDialog(null, "ERROR: Trigger cannot contain spaces");
+				}
 			} else {
-				JOptionPane.showMessageDialog(null, "ERROR: Trigger cannot contain spaces");
+				JOptionPane.showMessageDialog(null, "ERROR: Trigger cannot be empty string");
 			}
 		}
 	}
