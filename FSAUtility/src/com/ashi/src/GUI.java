@@ -16,8 +16,11 @@ import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Line2D;
+
 import java.io.Serializable;
+
 import java.text.AttributedString;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -43,15 +46,16 @@ public class GUI extends JPanel implements Serializable {
 											// creating a box of size CLICKBOX around the cursor and seeing if it
 											// intersects a line. This allows for easy connection selection
 	private static final int ARC_HEIGHT = 60; // Two nodes that connect to each other will need to have their
-												// connection lines arced so you can distinguish between them
+												// connection lines arced so you can distinguish between them. This
+												// constant determines the height of the arcs
 	private static final int NODE_NAME_HEIGHT_OFFSET = 70; // Height to offset name of node by
 	private static final int KEYWORDS_LINE_OFFSET = 30; // The amount of space to offset the keywords of a connection
 														// by its connection line
 	private List<Node> nodes;
 	private Node selectedNode;
-	private Node beginningNode; // If you want to create a connection between nodes, the program will see if you
-								// selected a initial node that will hold the connection, which is stored in
-								// this variable. If not, the program will just select a node like normal
+	private Node connectionStartNode; // If you want to create a connection between nodes, the program will see if you
+	// selected a initial node that will hold the connection, which is stored in
+	// this variable. If not, the program will just select a node like normal
 	private Connection selectedConnection;
 	private int nodeIndex = 0; // Used to give default names to the nodes based on their index
 	private Node testNode; // Used to highlight the node you're currently on in query string testing
@@ -82,12 +86,12 @@ public class GUI extends JPanel implements Serializable {
 		this.selectedNode = selectedNode;
 	}
 
-	public Node getBeginningNode() {
-		return beginningNode;
+	public Node getConnectionStartNode() {
+		return connectionStartNode;
 	}
 
-	public void setBeginningNode(Node beginningNode) {
-		this.beginningNode = beginningNode;
+	public void setConnectionStartNode(Node beginningNode) {
+		this.connectionStartNode = beginningNode;
 	}
 
 	public int getScreenX() {
@@ -139,7 +143,10 @@ public class GUI extends JPanel implements Serializable {
 	}
 
 	public GUI() {
+		// Make the JPanel focusable so the keyListener will work
 		setFocusable(true);
+
+		// Add listeners
 		addMouseListener(new CustomMouseListener());
 		addMouseMotionListener(new CustomMouseListener());
 		addKeyListener(new CustomKeyListener());
@@ -147,7 +154,6 @@ public class GUI extends JPanel implements Serializable {
 		nodes = new ArrayList<>();
 
 		selectedNode = null;
-
 	}
 
 	private class CustomKeyListener implements KeyListener {
@@ -191,7 +197,8 @@ public class GUI extends JPanel implements Serializable {
 		Node endingNode = selectedConnection.getEndNode();
 		startingNode.getConnections().remove(endingNode);
 
-		// Reset the selectedConnection variable, as the selected connection was deleted
+		// Reset the selectedConnection variable, as the selected connection was just
+		// deleted
 		selectedConnection = null;
 	}
 
@@ -210,7 +217,7 @@ public class GUI extends JPanel implements Serializable {
 		// Remove the node itself
 		nodes.remove(selectedNode);
 
-		// Reset the selectedNode variable, as the node that was just selected is
+		// Reset the selectedNode variable, as the node that was just selected has been
 		// deleted
 		selectedNode = null;
 	}
@@ -219,16 +226,17 @@ public class GUI extends JPanel implements Serializable {
 		public void mousePressed(MouseEvent me) {
 
 			// Left click
-			// Check to see if node was clicked
 			if (me.getButton() == MouseEvent.BUTTON1) {
 
+				// Check to see if node was clicked
 				for (Node node : nodes) {
 
 					if (node.clickedOn(me.getX(), me.getY())) {
 						// Node has been clicked on. The program then checks if you want to create
-						// a connection, or select another node. If the beginning node is not null, then
+						// a connection, or select another node. If the connectionStart variable is not
+						// null, then
 						// a connection is to be created
-						if (beginningNode != null) {
+						if (connectionStartNode != null) {
 							createConnection(node);
 							// Connection has been created, so exit no matter what
 							return;
@@ -243,17 +251,15 @@ public class GUI extends JPanel implements Serializable {
 
 				// Node was not clicked, so user possibly clicked on connection
 				for (Node node : nodes) {
-
 					for (Node adj : node.getConnections().keySet()) {
-						// Adj is the opposite node to all connections the current node has. So this
-						// loop is going through all connections, seeing if one has been clicked on
+						// Adj is the opposite node to all connections the current node has.
 
 						/*
 						 * This code works by going through every connection in the GUI, and assigning
 						 * currConnection with the actual line object of the connection depending on the
 						 * connection type (rounded arc for node pairs that are connected to each other,
 						 * a simple line for a one way connection between two nodes, and an inwards
-						 * up-pointing line for self-looping connections (To be added))
+						 * up-pointing line for self-looping connections)
 						 */
 
 						Shape currConnection = null;
@@ -268,8 +274,6 @@ public class GUI extends JPanel implements Serializable {
 							currConnection = createSimpleLine(adj, node);
 						}
 
-						// }
-
 						// Check if ***currently assigned*** connection line has been clicked
 						if (checkForConnectionClick(me, adj, node, currConnection)) {
 							// Connection has been clicked so exit out and prevent variables from being
@@ -282,21 +286,24 @@ public class GUI extends JPanel implements Serializable {
 
 				// Clicked on empty space so reset variables
 				resetVariables();
+
+				// Refresh screen
 				repaint();
 			}
 
 			// Middle mouse
 			if (me.getButton() == MouseEvent.BUTTON2) {
 				// Check if beginning node for a connection was clicked
-				if (checkBeginningNodeSelected(me)) {
-					// Beginning node variable has been set, so exit out and prevent variables from
-					// being reset
+				if (checkConnectionStartNodeSelected(me)) {
+					// Connection start node variable has been set, so exit out and prevent
+					// variables from being reset
 					return;
 				}
 
 				// No beginning node selected so restore variables back to default
 				resetVariables();
 
+				// Refresh screen
 				repaint();
 			}
 
@@ -307,6 +314,8 @@ public class GUI extends JPanel implements Serializable {
 
 				// Reset all variables since a new node was just created
 				resetVariables();
+
+				// Refresh screen
 				repaint();
 			}
 
@@ -336,8 +345,8 @@ public class GUI extends JPanel implements Serializable {
 	}
 
 	/**
-	 * Changes the passed-in node to be the new selected node, along with assigning
-	 * some coordinate variables with the given mouse event
+	 * Changes the passed-in node parameter to be the new selected node, along with
+	 * assigning some coordinate variables with the given mouse event
 	 * 
 	 * @param node To assign to selected node variable
 	 * @param me   Event object to set screen and panel variables with
@@ -351,33 +360,34 @@ public class GUI extends JPanel implements Serializable {
 		panelY = me.getY();
 
 		// Reset node variables besides selectedNode
-		beginningNode = null;
+		connectionStartNode = null;
 		selectedConnection = null;
 
-		// Refresh the GUI
+		// Refresh screen
 		repaint();
 	}
 
 	/**
-	 * Checks whether a node has been selected to be a beginning node
+	 * Checks to see whether a node has been selected to be a beginning node
 	 * 
-	 * @param me To check whether a node has been selected
-	 * @return Whether a node has been assigned as a beginning node for a potential
-	 *         connection
+	 * @param me Mouse coordinates used to check whether a node has been selected
+	 * @return Whether a node has been assigned to be a connection start node for a
+	 *         potential connection
 	 */
-	public boolean checkBeginningNodeSelected(MouseEvent me) {
+	public boolean checkConnectionStartNodeSelected(MouseEvent me) {
 		for (Node node : nodes) {
 			if (node.clickedOn(me.getX(), me.getY())) {
+				// Node has been selected to be a connection start node
 				selectedNode = null;
-				beginningNode = node;
+				connectionStartNode = node;
 				selectedConnection = null;
 				repaint();
 				return true;
 			}
 		}
 
+		// No node selected
 		return false;
-
 	}
 
 	/**
@@ -386,13 +396,14 @@ public class GUI extends JPanel implements Serializable {
 	 */
 	private void resetVariables() {
 		selectedNode = null;
-		beginningNode = null;
+		connectionStartNode = null;
 		selectedConnection = null;
+		testNode = null;
 	}
 
 	/**
-	 * Checks to see if the assigned connection line has been clicked. If it has,
-	 * create a connection object with the associated front and end nodes
+	 * Checks to see if a connection line Shape object has been clicked. If it has,
+	 * change the selected connection variable
 	 * 
 	 * @param me       MouseEvent to check if the curve has been clicked
 	 * @param adj      The adjacent node of the connection
@@ -408,8 +419,10 @@ public class GUI extends JPanel implements Serializable {
 			// the selected connection now that the program knows what connection has been
 			// clicked
 			selectedNode = null;
-			beginningNode = null;
+			connectionStartNode = null;
 			selectedConnection = new Connection(currNode, adj);
+
+			// Refresh screen
 			repaint();
 			return true;
 		}
@@ -418,8 +431,8 @@ public class GUI extends JPanel implements Serializable {
 	}
 
 	/**
-	 * Creates a straight line connection shape from a one-way connection between
-	 * two nodes
+	 * Creates a straight line connection Shape object from a one-way connection
+	 * between two nodes
 	 * 
 	 * @param adj  The adjacent node
 	 * @param node The original node
@@ -430,7 +443,7 @@ public class GUI extends JPanel implements Serializable {
 	}
 
 	/**
-	 * Creates an inwards pointing arrow from a self-looping connection
+	 * Creates an inwards-pointing arrow Shape object from a self-looping connection
 	 * 
 	 * @param node The node of the self-connection
 	 * @return The connection line shape
@@ -441,11 +454,11 @@ public class GUI extends JPanel implements Serializable {
 	}
 
 	/**
-	 * Creates a rounded line for a two-way connection between two nodes
+	 * Creates a rounded arc for a two-way connection between two nodes
 	 * 
-	 * @param adj
-	 * @param currNode
-	 * @return
+	 * @param adj  The adjacent node
+	 * @param node The original node
+	 * @return The rounded arc shape
 	 */
 	public Shape createRoundedLine(Node adj, Node currNode) {
 		double dx = adj.getxPos() - currNode.getxPos(), dy = adj.getyPos() - currNode.getyPos();
@@ -465,7 +478,8 @@ public class GUI extends JPanel implements Serializable {
 	 * Creates a connection from the selected node with another node with an
 	 * accepted string determined by the user
 	 * 
-	 * @param otherNode The other node for the current node to connect to
+	 * @param otherNode The other node for the currently selected node (connection
+	 *                  start node) to connect to
 	 */
 	private void createConnection(Node otherNode) {
 		String trigger = JOptionPane.showInputDialog(null, "Enter accepted string");
@@ -473,18 +487,19 @@ public class GUI extends JPanel implements Serializable {
 		if (trigger != null) {
 			// User clicked on cancel
 			if (!trigger.equals("")) {
-				// Trigger can't be empty string
+				// Trigger is not empty string
 				if (!trigger.contains(" ")) {
-					// Trigger cannot contain spaces, due to spaces being used to separate triggers
+					// Trigger doesn't contain strings (Required, because strings are used to
+					// delimit accepted strings)
 
 					// Add a connection to the current node with the specified trigger to the other
 					// node
-					beginningNode.addNode(otherNode, trigger);
+					connectionStartNode.addNode(otherNode, trigger);
 
 					// Reset variables due to a connection just being created
 					resetVariables();
 
-					// Refresh the GUI
+					// Refresh screen
 					repaint();
 					return;
 				} else {
@@ -501,9 +516,13 @@ public class GUI extends JPanel implements Serializable {
 		super.paintComponent(g);
 
 		Graphics2D g2d = (Graphics2D) g;
+		// Graphics2D is a child of Graphics, so it has all the functionality of
+		// Graphics and then some. Therefore, we can call every Graphics function using
+		// g2d, along with new functions implemented in Graphics2D
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		for (Node node : nodes) {
+			// Draw the node itself
 			drawNode(g2d, node);
 
 			// Draw node name
@@ -512,6 +531,7 @@ public class GUI extends JPanel implements Serializable {
 			// Reset color back to default
 			g2d.setColor(Color.BLACK);
 
+			// Draw connections
 			drawConnectionsForNode(g2d, node);
 
 			// Reset color back to default
@@ -527,7 +547,6 @@ public class GUI extends JPanel implements Serializable {
 	 * @param node The node to draw the connections of
 	 */
 	private void drawConnectionsForNode(Graphics2D g2d, Node node) {
-		// Draw connections
 		for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
 			Node adj = entry.getKey();
 			Set<String> triggers = entry.getValue();
@@ -579,7 +598,7 @@ public class GUI extends JPanel implements Serializable {
 				// Colored blue since selected
 				g2d.setColor(Color.BLUE);
 				drawTerminalNode(g2d, node);
-			} else if (beginningNode != null && node.equals(beginningNode)) {
+			} else if (connectionStartNode != null && node.equals(connectionStartNode)) {
 				// Colored green since beginning node
 				g2d.setColor(Color.GREEN);
 				drawTerminalNode(g2d, node);
@@ -598,7 +617,7 @@ public class GUI extends JPanel implements Serializable {
 				// Colored blue since selected
 				g2d.setColor(Color.BLUE);
 				drawBeginningNode(g2d, node);
-			} else if (beginningNode != null && node.equals(beginningNode)) {
+			} else if (connectionStartNode != null && node.equals(connectionStartNode)) {
 				// Colored green since beginning node
 				g2d.setColor(Color.GREEN);
 				drawBeginningNode(g2d, node);
@@ -617,7 +636,7 @@ public class GUI extends JPanel implements Serializable {
 				// Colored blue since selected
 				g2d.setColor(Color.BLUE);
 				drawRegularNode(g2d, node);
-			} else if (beginningNode != null && node.equals(beginningNode)) {
+			} else if (connectionStartNode != null && node.equals(connectionStartNode)) {
 				// Colored green since beginning
 				g2d.setColor(Color.GREEN);
 				drawRegularNode(g2d, node);

@@ -417,7 +417,7 @@ public class Main {
 					// Replace variables of old GUI with new GUI
 					gui.setNodes(newGui.getNodes());
 					gui.setSelectedNode(newGui.getSelectedNode());
-					gui.setBeginningNode(newGui.getBeginningNode());
+					gui.setConnectionStartNode(newGui.getConnectionStartNode());
 					gui.setSelectedConnection(newGui.getSelectedConnection());
 					gui.setNodeIndex(newGui.getNodeIndex());
 					gui.setTestNode(newGui.getTestNode());
