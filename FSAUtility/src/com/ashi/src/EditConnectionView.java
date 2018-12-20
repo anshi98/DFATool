@@ -70,8 +70,6 @@ public class EditConnectionView extends JPanel {
 			// Visually update the list
 			dlm.removeAllElements();
 
-			// Refresh the GUI
-			Main.gui.repaint();
 		});
 		return removeAllTriggers;
 	}
@@ -97,9 +95,6 @@ public class EditConnectionView extends JPanel {
 
 				// Visually update the list
 				dlm.removeElementAt(selectedIndex);
-
-				// Refresh the GUI
-				Main.gui.repaint();
 
 			} else {
 				JOptionPane.showMessageDialog(null, "ERROR: No trigger selected");
@@ -135,8 +130,6 @@ public class EditConnectionView extends JPanel {
 						// Refresh list GUI
 						dlm.addElement(newTriggerName);
 
-						// Refresh main GUI
-						Main.gui.repaint();
 					} else {
 						JOptionPane.showMessageDialog(null, "ERROR: Trigger cannot contain spaces");
 					}

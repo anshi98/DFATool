@@ -610,6 +610,7 @@ public class GUI extends JPanel implements Serializable {
 				// Simply draw without color
 				drawTerminalNode(g2d, node);
 			}
+			break;
 		}
 		case BEGINNING: {
 			// Beginning node, so the program must render the inwards pointing arrow
@@ -629,6 +630,7 @@ public class GUI extends JPanel implements Serializable {
 				// Simply draw without color
 				drawBeginningNode(g2d, node);
 			}
+			break;
 		}
 		case REGULAR: {
 			// Regular node, so just draw normally
@@ -648,6 +650,7 @@ public class GUI extends JPanel implements Serializable {
 				// Simply draw without color
 				drawRegularNode(g2d, node);
 			}
+			break;
 		}
 		}
 	}
