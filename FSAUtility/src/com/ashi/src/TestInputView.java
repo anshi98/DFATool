@@ -1,6 +1,7 @@
 package com.ashi.src;
 
 import java.awt.BorderLayout;
+
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -20,8 +21,8 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class TestInputView extends JPanel {
 	public static final int WIDTH = 300; // Width of testing window
-	public static final int HEIGHT_PER_CONNECTION_ITEM = 18; // Height of window will depend on how long the query
-																// string is
+	public static final int HEIGHT_PER_CONNECTION_ITEM = 18; // Height of window will depend on how many query string
+																// segments take up the window
 	public static final int BASE_HEIGHT = 100; // Base height of the window
 
 	List<String> inputs;
@@ -37,11 +38,10 @@ public class TestInputView extends JPanel {
 		setLayout(new BorderLayout());
 
 		initList();
-
-		initControls();
+		initTestButton();
 
 		// Set the testNode to the node with node state BEGINNING. There will always be
-		// a node with node state BEGINNING, since a TestInputView window won't be
+		// a node with node state BEGINNING, since a TestInputView window cannot be
 		// created if there isn't one
 		for (Node curr : Main.gui.getNodes()) {
 			if (curr.getNodeState() == NodeState.BEGINNING) {
@@ -49,37 +49,27 @@ public class TestInputView extends JPanel {
 				break;
 			}
 		}
-	}
 
-	/**
-	 * Creates control panel which contains button for testing automata with query
-	 * string
-	 */
-	private void initControls() {
-
-		// Create button
-		initTestButton();
-
-		add(downButton, BorderLayout.CENTER);
-
+		// To see initial testing node
 		Main.gui.repaint();
 	}
 
 	/**
 	 * Creates a button for advancing to next segment of query string. When clicked,
-	 * the program will check if testing window is at the last segment of the query
-	 * string. If it is, there's no more segments to test. It will go through all
-	 * connections of the current node, with the corresponding opposite node, seeing
-	 * if the any connection contains the wanted query string segment. If it does,
-	 * it'll advance to the node accepting the segment
+	 * the program will check if the testing window is at the last segment of the
+	 * query string. If it is, there are no more segments to test. It will go
+	 * through all connections of the current node, with the corresponding opposite
+	 * node, seeing if the connection accepts the next query string segment. If it
+	 * does, it'll advance to the node accepting the segment
 	 * 
 	 * @return The test button
 	 */
 	private void initTestButton() {
 		downButton = new JButton("Test");
 		downButton.addActionListener(e -> {
-			// If program can't find self loop, carry on with checking rest of the nodes
+			// Check for self-looping connections first, as they have priority
 			if (!checkForSelfLoop()) {
+				// If program can't find self loop, carry on with checking rest of the nodes
 				if (!checkOtherNodes()) {
 					// No connections found accepting the query string segment
 					JOptionPane.showMessageDialog(null, "ERROR: No connection found");
@@ -87,35 +77,42 @@ public class TestInputView extends JPanel {
 			}
 
 		});
+
+		add(downButton, BorderLayout.CENTER);
 	}
 
 	/**
 	 * Checks to see if there's another node to accept the query segment
 	 * 
-	 * @return Whether another node containing the accepted string has been found
+	 * @return Whether another node accepts the next query string segment
 	 */
 	private boolean checkOtherNodes() {
 		for (Entry<Node, Set<String>> entry : node.getConnections().entrySet()) {
 			// "entry" contains a node connected to the current node, along with all strings
-			// that are accepted for that node. This for loop goes through all these
+			// that are accepted for that node. This for-loop goes through all these
 			// connections
 
 			if (entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
-				// If not at the end of the query string and found a connection accepting the
-				// wanted query string segment, change the current node to the node accepting
-				// the segment
+				// Found a node that accepts the next segment
+
+				// Change current node to the accepting node
 				node = entry.getKey();
 
+				// Update the GUI
 				Main.gui.setTestNode(node);
 				Main.gui.repaint();
+
+				// Move on to the next segment
 				list.setSelectedIndex(list.getSelectedIndex() + 1);
 
+				// See if you're on the final segment, and on a terminal node
 				endingCheck();
 				return true;
 			}
 
 		}
 
+		// Didn't find node in loop
 		return false;
 	}
 
@@ -124,7 +121,11 @@ public class TestInputView extends JPanel {
 	 */
 	private void endingCheck() {
 		if (list.getSelectedIndex() == inputs.size() - 1) {
+			// On last segment
+
+			// Disable button to prevent OoB
 			downButton.setEnabled(false);
+
 			if (Main.gui.getTestNode().getNodeState().equals(NodeState.TERMINAL)) {
 				// Testing ended on terminal node, and is therefore successful
 				JOptionPane.showMessageDialog(null, "Query string successful. Ended on terminal node.");
@@ -138,7 +139,8 @@ public class TestInputView extends JPanel {
 	/**
 	 * Checks to see if there's a self-looping connection to be considered first
 	 * 
-	 * @return Whether a self-looping connection has been found
+	 * @return Whether a self-looping connection accepting the segment has been
+	 *         found
 	 */
 	private boolean checkForSelfLoop() {
 		// Due to the getConnections() being a set, it's possible that if a node has a
@@ -151,12 +153,12 @@ public class TestInputView extends JPanel {
 
 			if (node.equals(entry.getKey())
 					&& entry.getValue().contains(dlm.getElementAt(list.getSelectedIndex() + 1))) {
-				// Found self looping node with the desired query string
+				// Found self-looping node with the desired string segment
 
-				Main.gui.setTestNode(node);
-				Main.gui.repaint();
+				// Move on to the next segment
 				list.setSelectedIndex(list.getSelectedIndex() + 1);
 
+				// See if you're on the final segment, and on a terminal node
 				endingCheck();
 
 				// No need to check for rest of nodes, so exit
@@ -164,8 +166,8 @@ public class TestInputView extends JPanel {
 			}
 		}
 
+		// Didn't find node in loop
 		return false;
-
 	}
 
 	/**
@@ -177,13 +179,19 @@ public class TestInputView extends JPanel {
 		list = new JList<>(dlm);
 		// Make segments non-selectable
 		list.setEnabled(false);
+
+		// Add dummy START element
 		inputs.add(0, "START");
+
+		// Add segments into the list
 		for (String input : inputs) {
 			dlm.addElement(input);
 		}
+
+		// Default the selected index to 0
 		list.setSelectedIndex(0);
+
 		add(list, BorderLayout.NORTH);
-		Main.gui.setTestNode(node);
 	}
 
 }

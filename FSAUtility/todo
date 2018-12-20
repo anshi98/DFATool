@@ -1,6 +1,5 @@
 TODO
 1. Add application settings
-5. Modularize code
 *6. Finalize comments and code*
 7. Fix problem with connection drawing in GUI involving enums
 8. Describe the code in the code itself and not in the JavaDocs
@@ -8,3 +7,4 @@ TODO
 10. Update README
 11. Fix arrow head
 17. Fix serialization bug
+18. Add instructions in README explaining how to use the program
