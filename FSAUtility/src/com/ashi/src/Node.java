@@ -1,6 +1,7 @@
 package com.ashi.src;
 
 import java.io.Serializable;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -9,7 +10,7 @@ import java.util.Set;
 import javax.swing.JComponent;
 
 /**
- * Object used to represent a node in the automata. Purely information, as the
+ * Object used to represent a node in the automata. Purely informational, as the
  * GUI is the one that draws the nodes based on the information given by the
  * node (position, radius, name, etc.)
  * 
@@ -67,12 +68,16 @@ public class Node extends JComponent implements Serializable {
 	 */
 	public void addNode(Node node, String trigger) {
 		if (connections.get(node) == null) {
+			// There have been no connections established between these nodes yet, so create
+			// one
 			connections.put(node, new HashSet<>());
 		}
 
 		// Remember that "connections" is an object that every node has. It maps a set
 		// of all
 		// accepted query strings from the current node to the opposite node
+
+		// toAddTo are the accepted keywords to get from "this" to "node"
 		Set<String> toAddTo = connections.get(node);
 
 		toAddTo.add(trigger);
