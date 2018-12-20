@@ -64,14 +64,14 @@ public class EditConnectionView extends JPanel {
 		removeAllTriggers.addActionListener(e -> {
 			Set<String> triggers = connection.getTriggers();
 
-			triggers.clear();
 			// Clears triggers from the list itself
+			triggers.clear();
 
-			dlm.removeAllElements();
 			// Visually update the list
+			dlm.removeAllElements();
 
-			Main.gui.repaint();
 			// Refresh the GUI
+			Main.gui.repaint();
 		});
 		return removeAllTriggers;
 	}
@@ -87,18 +87,20 @@ public class EditConnectionView extends JPanel {
 			int selectedIndex;
 
 			if ((selectedIndex = listOfTriggers.getSelectedIndex()) != -1) {
-				// If a keyword is selected
-				Set<String> triggers = connection.getTriggers();
+				// Keyword is selected
+
 				// Get the list of triggers
+				Set<String> triggers = connection.getTriggers();
 
-				triggers.remove(listOfTriggers.getSelectedValue());
 				// Remove the selected trigger from the list
+				triggers.remove(listOfTriggers.getSelectedValue());
 
-				dlm.removeElementAt(selectedIndex);
 				// Visually update the list
+				dlm.removeElementAt(selectedIndex);
 
-				Main.gui.repaint();
 				// Refresh the GUI
+				Main.gui.repaint();
+
 			} else {
 				JOptionPane.showMessageDialog(null, "ERROR: No trigger selected");
 			}
@@ -114,8 +116,8 @@ public class EditConnectionView extends JPanel {
 	private Component createAddTriggerButton() {
 		JButton addTrigger = new JButton("Add Trigger");
 		addTrigger.addActionListener(e -> {
-			Set<String> triggers = connection.getTriggers();
 			// Get the list of triggers
+			Set<String> triggers = connection.getTriggers();
 
 			String newTriggerName = JOptionPane.showInputDialog(null, "Enter Trigger Name");
 
@@ -127,14 +129,14 @@ public class EditConnectionView extends JPanel {
 						// Trigger doesn't contain strings (Required, because strings are used to
 						// delimit accepted strings)
 
-						triggers.add(newTriggerName);
 						// Add trigger to list
+						triggers.add(newTriggerName);
 
-						dlm.addElement(newTriggerName);
 						// Refresh list GUI
+						dlm.addElement(newTriggerName);
 
-						Main.gui.repaint();
 						// Refresh main GUI
+						Main.gui.repaint();
 					} else {
 						JOptionPane.showMessageDialog(null, "ERROR: Trigger cannot contain spaces");
 					}
