@@ -4,4 +4,12 @@
 
 Tool used to simulate deterministic automaton. Swing used for GUI.
 
-Currently a WIP. Code is very unfinished.
+## Bugs
+- [ ] Serialization only works in some cases. Throws a NullPointerException for hashCode() in Node.java
+
+## Potential To-dos
+- [ ] Change how two-way connections appear
+- [ ] Add application settings feature
+
+## Instructions
+#### Controls
