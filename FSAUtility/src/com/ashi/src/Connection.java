@@ -3,7 +3,7 @@ package com.ashi.src;
 import java.util.Set;
 
 /**
- * An object representing a node-to-node connection
+ * An object representing node-to-node connections
  * 
  * @author Andy
  *
