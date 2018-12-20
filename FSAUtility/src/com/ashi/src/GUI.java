@@ -534,8 +534,6 @@ public class GUI extends JPanel implements Serializable {
 			// Draw connections
 			drawConnectionsForNode(g2d, node);
 
-			// Reset color back to default
-			g2d.setColor(Color.BLACK);
 		}
 
 	}
@@ -580,6 +578,8 @@ public class GUI extends JPanel implements Serializable {
 					drawConnection(triggers, g2d, node.getxPos(), node.getyPos(), adj.getxPos(), adj.getyPos());
 				}
 			}
+			// Reset color back to default
+			g2d.setColor(Color.BLACK);
 		}
 	}
 
