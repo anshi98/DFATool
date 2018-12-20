@@ -68,10 +68,10 @@ public class EditConnectionView extends JPanel {
 			// Clears triggers from the list itself
 
 			dlm.removeAllElements();
-			// Visual update
+			// Visually update the list
 
 			Main.gui.repaint();
-			// Refresh
+			// Refresh the GUI
 		});
 		return removeAllTriggers;
 	}
@@ -120,11 +120,12 @@ public class EditConnectionView extends JPanel {
 			String newTriggerName = JOptionPane.showInputDialog(null, "Enter Trigger Name");
 
 			if (newTriggerName != null) {
-				// User clicked on cancel
+				// User clicked on OK
 				if (!newTriggerName.equals("")) {
-					// Trigger can't be empty string
+					// Trigger is not empty string
 					if (!newTriggerName.contains(" ")) {
-						// Trigger cannot contain spaces, due to spaces being used to separate triggers
+						// Trigger doesn't contain strings (Required, because strings are used to
+						// delimit accepted strings)
 
 						triggers.add(newTriggerName);
 						// Add trigger to list
@@ -150,20 +151,22 @@ public class EditConnectionView extends JPanel {
 	 * Creates the visual list for displaying the accepted keywords
 	 */
 	private void initList() {
-
 		dlm = new DefaultListModel<>();
 
 		listOfTriggers = new JList<>(dlm);
 
+		// Set dimensions
 		listOfTriggers.setPreferredSize(new Dimension(WIDTH / 2, HEIGHT));
 
+		// Make scrollable
 		JScrollPane jsp = new JScrollPane(listOfTriggers);
 
+		// Get list of accepted strings from connection
 		Map<Node, Set<String>> map = connection.getStartNode().getConnections();
+		Set<String> acceptedStrings = map.get(connection.getEndNode());
 
-		Set<String> connections = map.get(connection.getEndNode());
-
-		for (String trigger : connections) {
+		// Add keywords to list
+		for (String trigger : acceptedStrings) {
 			dlm.addElement(trigger);
 		}
 
