@@ -112,7 +112,7 @@ public class TestInputView extends JPanel {
 
 		}
 
-		// Didn't find node in loop
+		// Didn't find corresponding node in loop
 		return false;
 	}
 
@@ -166,7 +166,7 @@ public class TestInputView extends JPanel {
 			}
 		}
 
-		// Didn't find node in loop
+		// Didn't find corresponding node in loop
 		return false;
 	}
 
