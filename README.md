@@ -13,15 +13,15 @@ Tool used to simulate deterministic automaton. Swing used for GUI.
 
 ## Instructions
 #### Controls
--DEL deletes a selected node
--Left click used to select nodes and connections
--Middle click used to create a connection (Use MMB to select starting node of connection and LMB to select ending node of connection)
--Right click used to create new nodes
+- DEL deletes a selected node
+- Left click used to select nodes and connections
+- Middle click used to create a connection (Use MMB to select starting node of connection and LMB to select ending node of connection)
+- Right click used to create new nodes
 
 #### Miscellaneous
--Starting nodes of to-be-created connections are colored green
--The current node the program is on during a query string test is colored red
--User-selected nodes are colored blue
--All testing will start from the **Beginning** node, indicated by an inwards-pointing arrow from the left
--Terminal nodes are indicated by a 2-layered circle
--Connections which start and end on the same node are indicated with an inwards-pointing arrow from the bottom
+- Starting nodes of to-be-created connections are colored green
+- The current node the program is on during a query string test is colored red
+- User-selected nodes are colored blue
+- All testing will start from the **Beginning** node, indicated by an inwards-pointing arrow from the left
+- Terminal nodes are indicated by a 2-layered circle
+- Connections which start and end on the same node are indicated with an inwards-pointing arrow from the bottom
